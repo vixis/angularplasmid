@@ -1,0 +1,45 @@
+.plasmid {
+    background-color: #fff;
+}
+.track {
+    stroke:#ddd;
+    stroke-width:0px;
+    fill:#f0f0f0;
+}
+
+.marker {
+    fill:#fc3;
+}
+
+.marker:hover{
+    fill:#c00;
+    stroke:#f00;
+    stroke-width:5px;
+}
+.scale-minor {
+    stroke: #999;
+    stroke-width: 1px;
+}
+.scale-mid {
+    stroke: #ccc;
+    stroke-width: 1px;
+}
+.scale-major {
+    stroke: #c00;
+    stroke-width: 2px;
+}
+.scale-label {
+    fill:#999;
+    text-anchor:middle;
+    alignment-baseline:middle;
+    font-family: 'Lato', 'Arial';
+    font-size:10px;
+}
+
+.scale-label-tiny {
+    fill:#ccc;
+    text-anchor:middle;
+    alignment-baseline:middle;
+    font-family: Arial;
+    font-size:8px;
+}

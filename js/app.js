@@ -1,3 +1,5 @@
+"use strict";
+
 var app = angular.module("plasmid-lib", []);
 
 app.controller('MainCtrl',['$timeout','$scope',function($timeout,$scope){

@@ -8,11 +8,11 @@ app.directive("spinner", function() {
             elem.bind('keydown keypress', function(e) {
                 if (e.which == 38) {
                     scope.$apply(function() {
-                        scope.ngModel -= 5;
+                        scope.ngModel = Number(scope.ngModel) - 5;
                     });
                 } else if (e.which == 40) {
                     scope.$apply(function() {
-                        scope.ngModel += 5;
+                        scope.ngModel = Number(scope.ngModel) + 5;
                     });
                 }
             });
@@ -24,12 +24,13 @@ app.directive("plasmid", ['SVGUtil',
         return {
             restrict: "A",
             scope: {
+                sequence: '=',
                 length: '=',
                 height: '=',
                 width: '='
             },
             compile: function(elem, attrs) {
-                var svg = SVGUtil.createSVGNode('svg', attrs);
+                var svg = SVGUtil.createSVGNode('svg', attrs, ['height', 'width']);
                 angular.element(svg).append(elem[0].childNodes);
                 elem.replaceWith(svg);
                 return {
@@ -38,43 +39,51 @@ app.directive("plasmid", ['SVGUtil',
                     },
                 };
             },
-            controller: function($scope) {
-                var element, ctrl = this;
-                this.init = function(elem) {
-                    element = elem;
-                };
-                this.getDimensions = function() {
-                    return {
-                        size: {
-                            width: $scope.width,
-                            height: $scope.height,
-                        },
-                        center: {
-                            x: $scope.width / 2,
-                            y: $scope.height / 2
-                        },
-                        length: $scope.length
+            controller: ['$scope',
+                function($scope) {
+                    var element, tracks = [];
+                    this.init = function(elem) {
+                        element = elem;
                     };
-                };
-                $scope.$watch("height", function(newVal) {
-                    if (newVal) {
-                        element.attr("height", newVal);
-                    }
-                });
-                $scope.$watch("width", function(newVal) {
-                    if (newVal) {
-                        element.attr("width", newVal);
-                    }
-                });
-            }
+                    this.getDimensions = function() {
+                        return {
+                            height: Number($scope.height),
+                            width: Number($scope.width),
+                            center: {
+                                x: Number($scope.height) / 2,
+                                y: Number($scope.width) / 2
+                            }
+                        };
+                    };
+                    this.getSequence = function() {
+                        return {
+                            length: Number($scope.length)
+                        };
+                    };
+                    $scope.$watchCollection('[height, width]', function(newValues) {
+                        if (newValues) {
+                            var height = Number(newValues[0]),
+                                width = Number(newValues[1]);
+                            // Change the size of the SVG to reflect the updated values
+                            element.attr("height", height);
+                            element.attr("width", width);
+                        }
+                    });
+                }
+            ]
         };
     }
 ]);
+/*----------------------------------------------------------------------------------- 
+    A track consists of two SVG elements: 
+    (1) SVG Group (will be appended to by the track's children)
+    (2) the actual track itself. 
+------------------------------------------------------------------------------------*/
 app.directive("track", ['SVGUtil',
     function(SVGUtil) {
         return {
             restrict: 'A',
-            require: "^plasmid",
+            require: ["track", "^plasmid"],
             scope: {
                 radius: '=',
                 thickness: '='
@@ -86,29 +95,50 @@ app.directive("track", ['SVGUtil',
                 angular.element(g).append(elem[0].childNodes);
                 elem.replaceWith(g);
                 return {
-                    post: function(scope, elem, attr, parentCtrl) {
-                        var e = angular.element(elem[0].childNodes[0]);
-                        var d = parentCtrl.getDimensions();
-                        e.css("fill-rule", "evenodd");
-                        scope.$watchCollection('[radius,thickness]', function(newValues) {
-                            if (newValues) {
-                                e.attr("d", SVGUtil.getPath.donut(d.center.x, d.center.y, newValues[0], newValues[1]));
-                            }
-                        });
+                    post: function(scope, elem, attr, controllers) {
+                        controllers[0].init(angular.element(elem[0].childNodes[0]), controllers[1]);
                     }
                 };
             },
-            controller: function($scope) {
-                this.getDimensions = function() {
-                    return {
-                        radius: Number($scope.radius),
-                        thickness: Number($scope.thickness)
+            controller: ['$scope',
+                function($scope) {
+                    var controller = this,
+                        element;
+                    this.init = function(elem, plasmid) {
+                        elem.css("fill-rule", "evenodd");
+                        element = elem;
+                        $scope.plasmid = plasmid;
                     };
-                };
-            }
+                    this.getDimensions = function() {
+                        var p = $scope.plasmid.getDimensions();
+                        return {
+                            radius: Number($scope.radius),
+                            thickness: Number($scope.thickness),
+                            center: {
+                                x: p.center.x,
+                                y: p.center.y
+                            }
+                        };
+                    };
+                    this.getPath = function() {
+                        var t = controller.getDimensions();
+                        return SVGUtil.getPath.donut(t.center.x, t.center.y, t.radius, t.thickness);
+                    };
+                    $scope.$watch(function() {
+                        var t = controller.getDimensions();
+                        var watchArr = [t.center.x, t.center.y, t.radius, t.thickness];
+                        return watchArr.join();
+                    }, function() {
+                        element.attr("d", controller.getPath());
+                    });
+                }
+            ]
         };
     }
 ]);
+/*----------------------------------------------------------------------------------- 
+    A marker is an arc that can be used to designate a special area on a track
+------------------------------------------------------------------------------------*/
 app.directive("marker", ['SVGUtil',
     function(SVGUtil) {
         return {
@@ -120,37 +150,113 @@ app.directive("marker", ['SVGUtil',
                 offsetthickness: "=",
                 markerclick: "&"
             },
-            require: ['^track', '^plasmid'],
-            link: function(scope, elem, attrs, ctrlArr) {
+            require: ['marker', '^track', '^plasmid'],
+            link: function(scope, elem, attrs, controllers) {
+                var g = angular.element(SVGUtil.createSVGNode('g'));
                 var path = angular.element(SVGUtil.createSVGNode('path', attrs));
-                var plasmid = ctrlArr[1].getDimensions();
-                var track = ctrlArr[0].getDimensions();
-                path.append(elem[0].childNodes);
-                elem.replaceWith(path);
-                path.on("click", function(e){
+                g.append(path);
+                g.append(elem[0].childNodes);
+                elem.replaceWith(g);
+                controllers[0].init(path, controllers[1], controllers[2]);
+                path.on("click", function(e) {
                     var marker = scope;
-                    scope.markerclick({$e:e, $marker: marker});
+                    scope.markerclick({
+                        $e: e,
+                        $marker: marker
+                    });
                 });
-                scope.$watch(function() {
-                    return (ctrlArr[0].getDimensions().radius + Number(scope.offsetradius || 0)) + "," + (ctrlArr[0].getDimensions().thickness + Number(scope.offsetthickness || 0)) + "," + (Number(scope.start)/Number(ctrlArr[1].getDimensions().length)*360) + "," + (Number(scope.end)/Number(ctrlArr[1].getDimensions().length)*360);
-                }, function(newValue) {
-                    if (newValue) {
-                        var newValues = newValue.split(",");
-                        path.attr("d", SVGUtil.getPath.arc(plasmid.center.x, plasmid.center.y, Number(newValues[0]), Number(newValues[2]), Number(newValues[3]), Number(newValues[1]), attrs.arrowstart, attrs.arrowend));
+            },
+            controller: ['$scope',
+                function($scope) {
+                    var controller = this,
+                        element;
+                    this.init = function(elem, track, plasmid) {
+                        element = elem;
+                        $scope.track = track;
+                        $scope.plasmid = plasmid;
+                    };
+                    this.getPath = function() {
+                        var t = $scope.track.getDimensions();
+                        var p = $scope.plasmid.getDimensions();
+                        var radius = t.radius + Number($scope.offsetradius || 0);
+                        var thickness = t.thickness + Number($scope.offsetthickness || 0);
+                        var startAngle = getAngle($scope.start);
+                        var endAngle = getAngle($scope.end);
+                        return SVGUtil.getPath.arc(t.center.x, t.center.y, radius, startAngle, endAngle, thickness, 0, 0);
+                    };
+                    this.getDimensions = function(){
+                        return {
+                            x : 50,
+                            y : 50
+                        };
+                    };
+
+                    function getAngle(angle) {
+                        var p = $scope.plasmid.getSequence();
+                        return (Number(angle) / p.length) * 360;
                     }
-                });
-            }
+                    $scope.$watch(function() {
+                        var t = $scope.track.getDimensions();
+                        var p = $scope.plasmid.getSequence();
+                        var watchArr = [t.radius, t.thickness, t.center.x, t.center.y, $scope.offsetradius, $scope.offsetthickness, $scope.start, $scope.end, p.length];
+                        return watchArr.join();
+                    }, function(newValue) {
+                        element.attr("d", controller.getPath());
+                    });
+                }
+            ]
         };
     }
 ]);
-app.directive("scale", ['SVGUtil',
+/*----------------------------------------------------------------------------------- 
+    A marker is an arc that can be used to designate a special area on a track
+------------------------------------------------------------------------------------*/
+app.directive("markerlabel", ['SVGUtil',
+    function(SVGUtil) {
+        return {
+            restrict: 'A',
+            scope: {
+            },
+            require: ['markerlabel', '^marker'],
+            link: function(scope, elem, attrs, controllers) {
+                var text = angular.element(SVGUtil.createSVGNode('text', attrs));
+                text.append(elem[0].childNodes);
+                elem.replaceWith(text);
+                controllers[0].init(text, controllers[1]);
+
+            },
+            controller: ['$scope',
+                function($scope) {
+                    var controller = this,
+                        element;
+                    this.init = function(elem, marker) {
+                        element = elem;
+                        $scope.marker = marker;
+                    };
+
+                    $scope.$watch(function() {
+                        var m = $scope.marker.getDimensions();
+                        var watchArr = [m.x, m.y, $scope.value];
+                        return watchArr.join();
+                    }, function(newValue) {
+                        var m = $scope.marker.getDimensions();
+                        element.attr("x", m.x);
+                        element.attr("y", m.y);
+                    });
+                }
+            ]
+        };
+    }
+]);
+
 /*
-	Properties:
-		interval		:  [integer] Uses the parent plasmid's 'length' property along with this interval to determine how many tick marks to make
-		ticklength		:  [integer] - Length of the tick marks
-		tickdirection	:  ["in"|"out"] - Direction and which side of a track the tick marks at attached to
-		tickoffset	 	:  [integer] - Any adjustment to the placement of the tick marks with respect to the track
+    Properties:
+        interval        :  [integer] Uses the parent plasmid's 'length' property along with this interval to determine how many tick marks to make
+        ticklength      :  [integer] - Length of the tick marks
+        tickdirection   :  ["in"|"out"] - Direction and which side of a track the tick marks at attached to
+        tickoffset      :  [integer] - Any adjustment to the placement of the tick marks with respect to the track
 */
+app.directive("scale", ['SVGUtil',
     function(SVGUtil) {
         return {
             restrict: 'A',
@@ -159,43 +265,52 @@ app.directive("scale", ['SVGUtil',
                 ticklength: "=",
                 tickoffset: "="
             },
-            require: ['^track', '^plasmid'],
-            link: function(scope, elem, attrs, ctrlArr) {
+            require: ['scale', '^track', '^plasmid'],
+            link: function(scope, elem, attrs, controllers) {
                 var path = angular.element(SVGUtil.createSVGNode('path', attrs));
-                var plasmid = ctrlArr[1].getDimensions();
-                var track = ctrlArr[0].getDimensions();
                 path.append(elem[0].childNodes);
                 elem.replaceWith(path);
-                scope.$watch(
-                function() {
-                    return (ctrlArr[0].getDimensions().radius + Number(scope.tickoffset || 0)) + "," + ctrlArr[0].getDimensions().thickness + "," + (Number(scope.interval || 0)) + "," + (Number(scope.ticklength || 3));
-                },
-                function(newValue) {
-                    if (newValue) {
-                        var newValues = newValue.split(",");
-                        var ticklength, radius;
-                        if (attrs.tickdirection == 'in') {
-                            ticklength = -newValues[3];
-                            radius = newValues[0];
-                        } else {
-                            ticklength = newValues[3];
-                            radius = Number(newValues[0]) + Number(newValues[1]);
-                        }
-                        path.attr("d", SVGUtil.getPath.scale(plasmid.center.x, plasmid.center.y, radius, newValues[2], plasmid.length, ticklength));
-                    }
-                });
-            }
+                controllers[0].init(path, controllers[1], controllers[2]);
+            },
+            controller: ['$scope', '$attrs',
+                function($scope, $attrs) {
+                    var controller = this,
+                        element;
+                    this.init = function(elem, track, plasmid) {
+                        element = elem;
+                        $scope.track = track;
+                        $scope.plasmid = plasmid;
+                    };
+                    this.getPath = function() {
+                        var t = $scope.track.getDimensions();
+                        var p = $scope.plasmid.getSequence();
+                        var inwardTickFlg = $attrs.tickdirection == 'in';
+                        var radius = inwardTickFlg ? t.radius : t.radius + t.thickness;
+                        var tickoffset = (inwardTickFlg ? -1 : 1) * Number($scope.tickoffset || 0);
+                        var ticklength = (inwardTickFlg ? -1 : 1) * Number($scope.ticklength || 3);
+                        var interval = Number($scope.interval);
+                        return SVGUtil.getPath.scale(t.center.x, t.center.y, radius + tickoffset, interval, p.length, ticklength);
+                    };
+                    $scope.$watch(function() {
+                        var t = $scope.track.getDimensions();
+                        var p = $scope.plasmid.getSequence();
+                        var watchArr = [t.center.x, t.center.y, t.radius, t.thickness, p.length, $scope.tickoffset, $scope.ticklength, $scope.interval];
+                        return watchArr.join();
+                    }, function(newValue) {
+                        element.attr("d", controller.getPath());
+                    });
+                }
+            ]
         };
     }
 ]);
-
-app.directive("scalelabel", ['SVGUtil',
 /*
     Properties:
         interval        :  [integer] Uses the parent plasmid's 'length' property along with this interval to determine how many labels to make
         labeloffset     :  [integer] Label offset distance from the track.  Inward/Outward offset is determined by the labeldirection
         labeldirection  :  ["in" | "out"] Side of the track the lables are attached to
 */
+app.directive("scalelabel", ['SVGUtil',
     function(SVGUtil) {
         return {
             restrict: 'A',
@@ -203,45 +318,48 @@ app.directive("scalelabel", ['SVGUtil',
                 interval: "=",
                 labeloffset: "="
             },
-            require: ['^track', '^plasmid'],
-            link: function(scope, elem, attrs, ctrlArr) {
-
-                // Create group element that will hold all text labels
+            require: ['scalelabel', '^track', '^plasmid'],
+            link: function(scope, elem, attrs, controllers) {
                 var g = angular.element(SVGUtil.createSVGNode('g', attrs));
                 elem.replaceWith(g);
-
-                // Get references to attached plasmid and track controllers
-                var plasmid = ctrlArr[1].getDimensions();
-                var track = ctrlArr[0].getDimensions();
-
-                // Determine some defaults
-                var labelinward = (attrs.labeldirection) ? ((attrs.labeldirection=='in') ? -1 : 1) : 1;
-                var defaultoffset = 15;
-
-                // Watch for changes in this directive and its parent directives and redraw if necessary
-                scope.$watch(
-                    function() {
-                        return  (ctrlArr[0].getDimensions().radius + (labelinward * Number(scope.labeloffset===undefined ? defaultoffset : scope.labeloffset))) + "," +
-                                (ctrlArr[0].getDimensions().thickness) + "," +
-                                (Number(scope.interval || 0));
-                    },
-                    function(newValue) {
-                        if (newValue) {
-
-                            var newValues = newValue.split(",");
-                            var radius = Number(newValues[0]) + ((labelinward==1) ? Number(newValues[1]) : 0 );
-                            var labelArr = SVGUtil.getElements.label(plasmid.center.x, plasmid.center.y, radius, newValues[2], plasmid.length);
-                            g.empty();
-                            for(i=0;i<=labelArr.length-1;i++){
-                                var t = angular.element(SVGUtil.createSVGNode('text',attrs));
-                                t.attr("x", labelArr[i].x);
-                                t.attr("y", labelArr[i].y);
-                                t.text(labelArr[i].text);
-                                g.append(t);
-                            }
+                controllers[0].init(g, controllers[1], controllers[2]);
+            },
+            controller: ['$scope', '$attrs',
+                function($scope, $attrs) {
+                    var controller = this,
+                        element;
+                    this.init = function(elem, track, plasmid) {
+                        element = elem;
+                        $scope.track = track;
+                        $scope.plasmid = plasmid;
+                    };
+                    this.getElements = function() {
+                        var t = $scope.track.getDimensions();
+                        var p = $scope.plasmid.getSequence();
+                        var inwardLabelFlg = $attrs.labeldirection == 'in';
+                        var labeloffset = (Number($scope.labeloffset || 15)) * (inwardLabelFlg ? -1 : 1);
+                        var radius = t.radius + labeloffset + (inwardLabelFlg ? 0 : t.thickness);
+                        var interval = Number($scope.interval);
+                        return SVGUtil.getElements.label(t.center.x, t.center.y, radius, interval, p.length);
+                    };
+                    $scope.$watch(function() {
+                        var t = $scope.track.getDimensions();
+                        var p = $scope.plasmid.getSequence();
+                        var watchArr = [t.center.x, t.center.y, t.radius, t.thickness, p.length, $scope.labeloffset, $scope.interval];
+                        return watchArr.join();
+                    }, function() {
+                        var labelArr = controller.getElements();
+                        element.empty();
+                        for (i = 0; i <= labelArr.length - 1; i++) {
+                            var t = angular.element(SVGUtil.createSVGNode('text', $attrs));
+                            t.attr("x", labelArr[i].x);
+                            t.attr("y", labelArr[i].y);
+                            t.text(labelArr[i].text);
+                            element.append(t);
                         }
-                });
-            }
+                    });
+                }
+            ]
         };
     }
 ]);

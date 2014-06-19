@@ -7,13 +7,16 @@ app.factory("SVGUtil", function() {
         };
     }
     return {
-        createSVGNode: function(name, settings) {
+        createSVGNode: function(name, settings, excludeSettings) {
             var namespace = 'http://www.w3.org/2000/svg';
             var node = document.createElementNS(namespace, name);
+            excludeSettings = excludeSettings || [];
             for (var attribute in settings) {
-                var value = settings[attribute];
-                if (value !== null && !attribute.match(/\$/) && (typeof value !== 'string' || value !== '')) {
-                    node.setAttribute(attribute, value);
+                if (excludeSettings.indexOf(attribute)<0) {
+                    var value = settings[attribute];
+                    if (value !== null && !attribute.match(/\$/) && (typeof value !== 'string' || value !== '')) {
+                        node.setAttribute(attribute, value);
+                    }
                 }
             }
             return node;

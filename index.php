@@ -11,21 +11,25 @@
 	</head>
 	<body ng-controller='MainCtrl'>
 		Plasmid Length : <input type='textbox' ng-model='plasmidlength' ng-init="plasmidlength='2000'" spinner/></br>
-		SVG Size : <input type='textbox' ng-model='size' ng-init="size='400'" spinner/></br>
-		Track Size : <input type="textbox" ng-model='rad' ng-init='rad=130' spinner/><br/>
-		Track Width: <input type="textbox" ng-model='t' ng-init='t=20' spinner/><br/>
+		SVG Size : <input type='textbox' ng-model='size' ng-init="size='500'" spinner/></br>
+		Track Size : <input type="textbox" ng-model='rad' ng-init='rad=150' spinner/><br/>
+		Track Width: <input type="textbox" ng-model='t' ng-init='t=30' spinner/><br/>
 		<button ng-click="start()">Start Animation</button> <button ng-click="stop()">Stop Animation</button>
 
 		<hr/>
 
 		<div plasmid class="plasmid" length="360" height="size" width="size">
 			<div track class="track" radius="rad" thickness="t">
-				<div marker ng-repeat="m in markers" class="marker" start="m.start" end="m.end" markerclick="clicked(m)"></div>
-				<div scale class="scale-major" interval="30" tickdirection="in"></div>
-				<div scalelabel class="scale-label-tiny" interval="30" labeldirection="in"></div>
-				<div scale class="scale-minor" interval="5" ></div>
-				<div scale class="scale-major" interval="15"></div>
-				<div scalelabel class="scale-label" interval="15"></div>
+				<div marker ng-repeat="m in markers" start="m.start" end="m.end" offsetthickness="20" style="fill:{{m.colorband}}"></div>
+				<div marker ng-repeat="m in markers" class="marker" start="m.start" end="m.end" arrowstartlength="-2" arrowendlength="3" markerclick="clicked(m)" style="fill:{{m.color}}">
+					<div markerlabel class="marker-label" offsetradius="t+20" style="fill:{{m.color}}" offsetangle="-(m.end-m.start)/2">{{m.start}}</div>
+					<div markerlabel class="marker-label" offsetradius="t+20" style="fill:{{m.color}}" offsetangle="(m.end-m.start)/2">{{m.end}}</div>
+				</div>
+				<div marker ng-repeat="m in markers" start="m.start" offsetthickness="20" style="stroke-width:2px;stroke:{{m.color}};stroke-dasharray:1 5"></div>
+				<div marker ng-repeat="m in markers" start="m.end" offsetthickness="20" style="stroke-width:2px;stroke:{{m.color}};stroke-dasharray:1 5"></div>
+				<div scalelabel class="scale-label" interval="20" direction="in"></div>
+				<div scale class="scale-minor" interval="5" direction="in"></div>
+				<div scale class="scale-major" interval="20" direction="in"></div>
 			</div>
 		</div>
 
@@ -34,13 +38,15 @@
 				<div scale interval="20" tickoffset="10" ticklength="3" style="stroke-width:1px;stroke:#ccc"></div>
 				<div scale interval="100" tickoffset="10" ticklength="5" style="stroke-width:2px;stroke:#f99"></div>
 				<div scalelabel class="scale-label" interval="100" labeloffset="30"></div>
-				<div marker start="300" end="400" offsetradius="-5" offsetthickness="10" arrowend="1" style='fill:#c00;stroke-width:2px;stroke:#666' markerclick="clicked($marker)"></div>
-				<div marker start="410" end="411" offsetradius="-5" offsetthickness="10" style='fill:#333;stroke-width:2px;stroke:#666'></div>
-				<div marker start="500" end="650" offsetradius="-5" offsetthickness="10" arrowstart="1" style='fill:#0c0;stroke-width:2px;stroke:#666'></div>
-				<div marker start="690" end="900" offsetradius="-5" offsetthickness="10" style='fill:#c0c;stroke-width:2px;stroke:#666'></div>
-				<div marker start="1100" end="1101" offsetradius="-5" offsetthickness="10" style='fill:#333;stroke-width:2px;stroke:#666'></div>
-				<div marker start="1200" end="1700" offsetradius="-5" offsetthickness="10" arrowstart="1" arrowend="1" style='fill:#f0f000;stroke-width:2px;stroke:#666'>
-					<div markerlabel>{{plasmidlength}}</div>
+				<div marker start="300" end="400" offsetradius="-5" offsetthickness="10" style='fill:#00d;stroke-width:2px;stroke:#666;' markerclick="clicked($marker)"></div>
+				<div marker start="410" offsetradius="-20" offsetthickness="40" style='stroke-width:1px;stroke:#f00;stroke-dasharray:3 5'></div>
+				<div marker start="500" end="650" offsetradius="-5" offsetthickness="10" style='fill:#0c0;stroke-width:2px;stroke:#666' arrowendlength="7" arrowendwidth="5"></div>
+				<div marker start="690" end="900" offsetradius="-5" offsetthickness="10" style='fill:#c00;stroke-width:2px;stroke:#666' arrowendlength="7" arrowendwidth="5"></div>
+				<div marker start="1200" end="1700" offsetradius="-5" offsetthickness="10" style='fill:#f0f000;stroke-width:2px;stroke:#666;stroke-dasharray:2 2' arrowendlength="7" arrowendwidth="5">
+					<div markerlabel class="marker-label" offsetradius="-40">{{plasmidlength}}</div>
+				</div>
+				<div marker start="1800" end="100" offsetradius="-5" offsetthickness="10" style='fill:#f0f000;stroke-width:2px;stroke:#666;stroke-dasharray:2 2' arrowstartlength="7" arrowstartwidth="5">
+					<div markerlabel class="marker-label" offsetradius="-40">Hind III</div>
 				</div>
 			</div>
 		</div>

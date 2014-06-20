@@ -166,8 +166,8 @@ app.directive("marker", ['SVGUtil',
                     });
                 });
             },
-            controller: ['$scope',
-                function($scope) {
+            controller: ['$scope', '$attrs',
+                function($scope, $attrs) {
                     var controller = this,
                         element;
                     this.init = function(elem, track, plasmid) {
@@ -176,25 +176,56 @@ app.directive("marker", ['SVGUtil',
                         $scope.plasmid = plasmid;
                     };
                     this.getPath = function() {
-                        var t = $scope.track.getDimensions();
-                        var p = $scope.plasmid.getDimensions();
-                        var radius = t.radius + Number($scope.offsetradius || 0);
-                        var thickness = t.thickness + Number($scope.offsetthickness || 0);
-                        var startAngle = getAngle($scope.start);
-                        var endAngle = getAngle($scope.end);
-                        return SVGUtil.getPath.arc(t.center.x, t.center.y, radius, startAngle, endAngle, thickness, 0, 0);
+                        var d = controller.getDimensions();
+                        arrowStart = $attrs.arrowstart;
+                        arrowEnd = $attrs.arrowend;
+                        return SVGUtil.getPath.arc(d.track.center.x, d.track.center.y, d.radius, d.angle.start, d.angle.end, d.thickness, d.arrow.start, d.arrow.end);
                     };
                     this.getDimensions = function(){
+                        var t = $scope.track.getDimensions();
+                        var p = $scope.plasmid.getSequence();
+                        var radius = t.radius + Number($scope.offsetradius || 0);
+                        var thickness = t.thickness + Number($scope.offsetthickness || 0);
+                        var startAngle = Number($scope.start)/p.length * 360;
+                        var endAngle  = Number($scope.end || $scope.start)/p.length * 360;
+                        endAngle += (endAngle<startAngle) ? 360 : 0;
+
                         return {
-                            x : 50,
-                            y : 50
+                            radius : radius,
+                            thickness : thickness,
+                            arrow : {
+                                start : {
+                                    width : Number($attrs.arrowstartwidth || 0),
+                                    length : Number($attrs.arrowstartlength || 0),
+                                    angle : Number($attrs.arrowstartangle || 0)
+                                },
+                                end : {
+                                    width : Number($attrs.arrowendwidth || 0),
+                                    length : Number($attrs.arrowendlength || 0),
+                                    angle : Number($attrs.arrowendangle || 0)
+                                }
+                            },
+                            angle: {
+                                start : startAngle,
+                                end : endAngle,
+                                calculate : function(position){
+                                    return (position/p.length) * 360;
+                                }
+                            },
+                            track : {
+                                center : {
+                                    x : t.center.x,
+                                    y : t.center.y
+                                }
+                            },
+                            position : function(offsetradius, offsetangle){
+                                offsetradius = Number(offsetradius || 0);
+                                offsetangle = Number(offsetangle || 0);
+                                return SVGUtil.polarToCartesian(t.center.x, t.center.y, radius + (thickness/2) + offsetradius, startAngle + ((endAngle-startAngle)/2) + offsetangle);
+                            }
                         };
                     };
 
-                    function getAngle(angle) {
-                        var p = $scope.plasmid.getSequence();
-                        return (Number(angle) / p.length) * 360;
-                    }
                     $scope.$watch(function() {
                         var t = $scope.track.getDimensions();
                         var p = $scope.plasmid.getSequence();
@@ -216,6 +247,8 @@ app.directive("markerlabel", ['SVGUtil',
         return {
             restrict: 'A',
             scope: {
+                offsetradius : "=",
+                offsetangle : "="
             },
             require: ['markerlabel', '^marker'],
             link: function(scope, elem, attrs, controllers) {
@@ -235,13 +268,13 @@ app.directive("markerlabel", ['SVGUtil',
                     };
 
                     $scope.$watch(function() {
-                        var m = $scope.marker.getDimensions();
-                        var watchArr = [m.x, m.y, $scope.value];
+                        var pos = $scope.marker.getDimensions().position();
+                        var watchArr = [pos.x, pos.y];
                         return watchArr.join();
                     }, function(newValue) {
-                        var m = $scope.marker.getDimensions();
-                        element.attr("x", m.x);
-                        element.attr("y", m.y);
+                        var pos = $scope.marker.getDimensions().position($scope.offsetradius,$scope.offsetangle);
+                        element.attr("x", pos.x);
+                        element.attr("y", pos.y);
                     });
                 }
             ]
@@ -253,8 +286,8 @@ app.directive("markerlabel", ['SVGUtil',
     Properties:
         interval        :  [integer] Uses the parent plasmid's 'length' property along with this interval to determine how many tick marks to make
         ticklength      :  [integer] - Length of the tick marks
-        tickdirection   :  ["in"|"out"] - Direction and which side of a track the tick marks at attached to
         tickoffset      :  [integer] - Any adjustment to the placement of the tick marks with respect to the track
+        direction       :  ["in"|"out"] - Direction and which side of a track the tick marks at attached to
 */
 app.directive("scale", ['SVGUtil',
     function(SVGUtil) {
@@ -284,7 +317,7 @@ app.directive("scale", ['SVGUtil',
                     this.getPath = function() {
                         var t = $scope.track.getDimensions();
                         var p = $scope.plasmid.getSequence();
-                        var inwardTickFlg = $attrs.tickdirection == 'in';
+                        var inwardTickFlg = $attrs.direction == 'in';
                         var radius = inwardTickFlg ? t.radius : t.radius + t.thickness;
                         var tickoffset = (inwardTickFlg ? -1 : 1) * Number($scope.tickoffset || 0);
                         var ticklength = (inwardTickFlg ? -1 : 1) * Number($scope.ticklength || 3);
@@ -307,8 +340,8 @@ app.directive("scale", ['SVGUtil',
 /*
     Properties:
         interval        :  [integer] Uses the parent plasmid's 'length' property along with this interval to determine how many labels to make
-        labeloffset     :  [integer] Label offset distance from the track.  Inward/Outward offset is determined by the labeldirection
-        labeldirection  :  ["in" | "out"] Side of the track the lables are attached to
+        labeloffset     :  [integer] Label offset distance from the track.  Inward/Outward offset is determined by the direction
+        direction       :  ["in" | "out"] Side of the track the lables are attached to
 */
 app.directive("scalelabel", ['SVGUtil',
     function(SVGUtil) {
@@ -336,7 +369,7 @@ app.directive("scalelabel", ['SVGUtil',
                     this.getElements = function() {
                         var t = $scope.track.getDimensions();
                         var p = $scope.plasmid.getSequence();
-                        var inwardLabelFlg = $attrs.labeldirection == 'in';
+                        var inwardLabelFlg = $attrs.direction == 'in';
                         var labeloffset = (Number($scope.labeloffset || 15)) * (inwardLabelFlg ? -1 : 1);
                         var radius = t.radius + labeloffset + (inwardLabelFlg ? 0 : t.thickness);
                         var interval = Number($scope.interval);

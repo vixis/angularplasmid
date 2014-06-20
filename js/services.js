@@ -21,6 +21,7 @@ app.factory("SVGUtil", function() {
             }
             return node;
         },
+        polarToCartesian : polarToCartesian,
         getPath: {
             donut: function(x, y, radius, width) {
                 x = Number(x);

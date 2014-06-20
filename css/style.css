@@ -43,3 +43,11 @@
     font-family: Arial;
     font-size:8px;
 }
+
+.marker-label{
+    text-anchor:middle;
+    alignment-baseline:middle;
+    font-size:12px;
+    font-weight:700;
+    fill:#009;
+}

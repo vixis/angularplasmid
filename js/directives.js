@@ -39,9 +39,15 @@ app.directive("plasmid", ['SVGUtil',
                     },
                 };
             },
-            controller: ['$scope',
-                function($scope) {
+            controller: ['$rootScope', '$scope', '$attrs',
+                function($rootScope, $scope, $attrs) {
                     var element, tracks = [];
+                    
+                    $rootScope.plasmids = $rootScope.plasmids || [];
+                    $rootScope.plasmids.push(this);
+
+                    this.attrs = $attrs;
+
                     this.init = function(elem) {
                         element = elem;
                     };
@@ -60,6 +66,12 @@ app.directive("plasmid", ['SVGUtil',
                             length: Number($scope.length)
                         };
                     };
+                    this.addTrack = function(track){
+                        tracks.push(track);
+                    };
+                    this.tracks = tracks;
+
+
                     $scope.$watchCollection('[height, width]', function(newValues) {
                         if (newValues) {
                             var height = Number(newValues[0]),
@@ -103,10 +115,11 @@ app.directive("track", ['SVGUtil',
             controller: ['$scope',
                 function($scope) {
                     var controller = this,
-                        element;
+                        element, markers=[];
                     this.init = function(elem, plasmid) {
                         elem.css("fill-rule", "evenodd");
                         element = elem;
+                        plasmid.addTrack(controller);
                         $scope.plasmid = plasmid;
                     };
                     this.getDimensions = function() {
@@ -124,6 +137,11 @@ app.directive("track", ['SVGUtil',
                         var t = controller.getDimensions();
                         return SVGUtil.getPath.donut(t.center.x, t.center.y, t.radius, t.thickness);
                     };
+
+                    this.addMarker = function(marker){
+                        markers.push(marker);
+                    };
+                    this.markers = markers;
                     $scope.$watch(function() {
                         var t = controller.getDimensions();
                         var watchArr = [t.center.x, t.center.y, t.radius, t.thickness];
@@ -172,6 +190,7 @@ app.directive("marker", ['SVGUtil',
                         element;
                     this.init = function(elem, track, plasmid) {
                         element = elem;
+                        track.addMarker(controller);
                         $scope.track = track;
                         $scope.plasmid = plasmid;
                     };
@@ -390,6 +409,45 @@ app.directive("scalelabel", ['SVGUtil',
                             t.text(labelArr[i].text);
                             element.append(t);
                         }
+                    });
+                }
+            ]
+        };
+    }
+]);
+/*----------------------------------------------------------------------------------- 
+    A marker is an arc that can be used to designate a special area on a track
+------------------------------------------------------------------------------------*/
+app.directive("tracklabel", ['SVGUtil',
+    function(SVGUtil) {
+        return {
+            restrict: 'A',
+            scope: {},
+            require: ['tracklabel', '^track'],
+            link: function(scope, elem, attrs, controllers) {
+                var text = angular.element(SVGUtil.createSVGNode('text', attrs));
+                text.append(elem[0].childNodes);
+                elem.replaceWith(text);
+                controllers[0].init(text, controllers[1]);
+
+            },
+            controller: ['$scope',
+                function($scope) {
+                    var controller = this,
+                        element;
+                    this.init = function(elem, track) {
+                        element = elem;
+                        $scope.track = track;
+                    };
+
+                    $scope.$watch(function() {
+                        var center = $scope.track.getDimensions().center;
+                        var watchArr = [center.x, center.y];
+                        return watchArr.join();
+                    }, function(newValue) {
+                        var pos = $scope.track.getDimensions().center;
+                        element.attr("x", pos.x);
+                        element.attr("y", pos.y);
                     });
                 }
             ]

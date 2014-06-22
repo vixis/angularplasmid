@@ -51,3 +51,13 @@
     font-weight:700;
     fill:#009;
 }
+
+.track-label{
+    text-anchor:middle;
+    alignment-baseline:middle;
+    font-size:56px;
+    font-weight:700;
+    fill:#ccc;
+    stroke:#333;
+    stroke-width:1px;
+}

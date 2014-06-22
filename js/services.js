@@ -1,3 +1,18 @@
+app.factory("PlasmidLib", function(){
+
+    var items = {};
+
+    function addItem(item){
+        if (item.id){
+            items.id = item;
+        }
+    }
+    function addPlasmid(plasmid){
+        var item;
+
+    }
+});
+
 app.factory("SVGUtil", function() {
     function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
         var angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;

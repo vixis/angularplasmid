@@ -29,10 +29,10 @@ app.directive("plasmidapi",['PlasmidLib', function(PlasmidLib){
     };
 }]);
 
-app.directive("plasmid", ['PlasmidLib','$compile',
-    function(PlasmidLib, $compile) {
+app.directive("plasmid", ['PlasmidLib','SVGUtil',
+    function(PlasmidLib, SVGUtil) {
         return {
-            restrict: "AE",
+            restrict: "A",
             scope: {
                 sequence: '=',
                 length: '=',
@@ -44,9 +44,12 @@ app.directive("plasmid", ['PlasmidLib','$compile',
                     plasmidController.init();
                 },
                 post : function(scope,elem,attrs,plasmidController){
-                    var svg = plasmidController.plasmid.svg;
+
+                    var svg = angular.element(SVGUtil.svg.createNode('svg', attrs, ['height', 'width']));
+                    plasmidController.plasmid.svg = svg;
                     svg.append(elem[0].childNodes);
                     elem.replaceWith(svg);
+
                 }
             },
             controller: ['$scope', '$element', '$attrs', function($scope, $element, $attrs) {
@@ -66,6 +69,7 @@ app.directive("plasmid", ['PlasmidLib','$compile',
                         plasmid.width = newValues[1];
                         plasmid.sequencelength = newValues[2];
                         plasmid.sequence = newValues[3];
+                        plasmid.draw();
                     }
                 });
             }]
@@ -77,11 +81,11 @@ app.directive("plasmid", ['PlasmidLib','$compile',
     (1) SVG Group (will be appended to by the track's children)
     (2) the actual track itself. 
 ------------------------------------------------------------------------------------*/
-app.directive("track", ['PlasmidLib',
-    function(PlasmidLib) {
+app.directive("track", ['PlasmidLib', 'SVGUtil',
+    function(PlasmidLib, SVGUtil) {
         return {
-            restrict: 'AE',
-            require: ["track", "^plasmid"],
+            restrict: 'A',
+            require: ["track", "?^plasmid"],
             scope: {
                 radius: '=',
                 thickness: '='
@@ -92,10 +96,15 @@ app.directive("track", ['PlasmidLib',
                     trackController.init(plasmidController);
                 },
                 post :  function(scope, elem, attrs, controllers) {
+
                     var trackController = controllers[0];
-                    var svg = trackController.track.svg;
-                    svg.append(elem[0].childNodes);
-                    elem.replaceWith(svg);
+                    var g = angular.element(SVGUtil.svg.createNode('g'));
+                    var path = angular.element(SVGUtil.svg.createNode('path', attrs));
+                    path.css("fill-rule", "evenodd");
+                    g.append(path);
+                    trackController.track.svg = path;
+                    g.append(elem[0].childNodes);
+                    elem.replaceWith(g);
                 }
             },
             controller: ['$scope', '$element', '$attrs', function($scope, $element, $attrs) {

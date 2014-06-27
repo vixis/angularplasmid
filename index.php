@@ -39,8 +39,8 @@
 
 		<div style='position:relative'>
 			<div plasmid id="p1" class="plasmid" length="360" height="size" width="size">
-				<div track class="track" radius="rad" thickness="t">
-					<div marker ng-repeat="m in [1,2]" start="m*40" end="m*50" offsetthickness="20" style="fill:{{m.colorband}}"></div>
+				<div track class="track" ng-repeat="m in [1,2]" radius="rad" thickness="t">
+					<!--<div marker ng-repeat="m in [1,2]" start="m*40" end="m*50" offsetthickness="20" style="fill:{{m.colorband}}"></div>-->
 				</div>
 			</div>
 		</div>

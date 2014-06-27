@@ -3,22 +3,24 @@ app.factory("PlasmidLib", ["SVGUtil", function(SVGUtil){
     var plasmidArr = {}, trackArr = {}, markerArr = {}, scaleArr = {};
 
     function Plasmid(element,attrs){
-         var _height, _width, _sequence, _sequencelength, _tracks = {};
+         var _svg, _height, _width, _sequence, _sequencelength, _tracks = {};
 
         var id = attrs.id;
         if (id){
             plasmidArr[id] = this;
         }
 
-        var svg = angular.element(SVGUtil.svg.createNode('svg', attrs, ['height', 'width']));
-        this.svg = svg;
-        this.attrs = attrs;
+        Object.defineProperty(this,"svg",{
+            get: function() {return _svg;},
+            set: function(value) {
+                _svg = value;
+            }
+        });
 
         Object.defineProperty(this,"height",{
             get: function() {return _height;},
             set: function(value) {
                 _height = Number(value);
-                svg.attr('height',value);
             }
         });
 
@@ -26,7 +28,6 @@ app.factory("PlasmidLib", ["SVGUtil", function(SVGUtil){
             get: function() {return _width;},
             set: function(value) {
                 _width = Number(value);
-                svg.attr('width',value);
             }
         });
 
@@ -69,19 +70,27 @@ app.factory("PlasmidLib", ["SVGUtil", function(SVGUtil){
             get: function() {return _tracks;}
         });
 
+        this.draw = function(){
+            if (_svg){
+                _svg.attr("height", _height);
+                _svg.attr("width", _width);
+            }
+        };
     }
 
     function Track(plasmid, element, attrs){
-        var _radius,  _thickness, _markers = {}, _scales = {};
+
+        var _svg, _radius,  _thickness, _markers = {}, _scales = {};
         var track = this;
 
-        var g = angular.element(SVGUtil.svg.createNode('g'));
-        var path = angular.element(SVGUtil.svg.createNode('path', attrs));
-        path.css("fill-rule", "evenodd");
-        g.append(path);
-        this.svg = g;
         this.plasmid = plasmid;
-        this.attrs = attrs;
+
+        Object.defineProperty(this,"svg",{
+            get: function() {return _svg;},
+            set: function(value) {
+                _svg = value;
+            }
+        });
 
         Object.defineProperty(this,"radius",{
             get: function() {return _radius;},
@@ -135,7 +144,9 @@ app.factory("PlasmidLib", ["SVGUtil", function(SVGUtil){
         });
 
         this.draw = function(){
-            path.attr("d", SVGUtil.svg.path.donut(track.center.x, track.center.y, track.radius, track.thickness));
+            if (_svg){
+                _svg.attr("d", SVGUtil.svg.path.donut(track.center.x, track.center.y, track.radius, track.thickness));
+            }
         };
 
         this.getPosition = function(pos, positionOption, radiusAdjust){

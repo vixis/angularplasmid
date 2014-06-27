@@ -52,6 +52,16 @@
     fill:#009;
 }
 
+.track-feature-label{
+    position:absolute;
+    padding:5px;
+    box-shadow:2px 2px 10px #999;
+    border:2px solid #666;
+    font-size:12px;
+    text-anchor:middle;
+    alignment-baseline:middle;
+    text-align:center;
+}
 .track-label{
     text-anchor:middle;
     alignment-baseline:middle;

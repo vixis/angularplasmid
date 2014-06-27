@@ -248,48 +248,52 @@ app.directive("markerlabel", ['SVGUtil',
 app.directive("scale", ['SVGUtil',
     function(SVGUtil) {
         return {
-            restrict: 'A',
+            restrict: 'AE',
             scope: {
                 interval: "=",
                 ticklength: "=",
                 tickoffset: "="
             },
-            require: ['scale', '^track', '^plasmid'],
-            link: function(scope, elem, attrs, controllers) {
-                var path = angular.element(SVGUtil.createSVGNode('path', attrs));
-                path.append(elem[0].childNodes);
-                elem.replaceWith(path);
-                controllers[0].init(path, controllers[1], controllers[2]);
-            },
-            controller: ['$scope', '$attrs',
-                function($scope, $attrs) {
-                    var controller = this,
-                        element;
-                    this.init = function(elem, track, plasmid) {
-                        element = elem;
-                        $scope.track = track;
-                        $scope.plasmid = plasmid;
-                    };
-                    this.getPath = function() {
-                        var t = $scope.track.getDimensions();
-                        var p = $scope.plasmid.getSequence();
-                        var inwardTickFlg = $attrs.direction == 'in';
-                        var radius = inwardTickFlg ? t.radius : t.radius + t.thickness;
-                        var tickoffset = (inwardTickFlg ? -1 : 1) * Number($scope.tickoffset || 0);
-                        var ticklength = (inwardTickFlg ? -1 : 1) * Number($scope.ticklength || 3);
-                        var interval = Number($scope.interval);
-                        return SVGUtil.getPath.scale(t.center.x, t.center.y, radius + tickoffset, interval, p.length, ticklength);
-                    };
-                    $scope.$watch(function() {
-                        var t = $scope.track.getDimensions();
-                        var p = $scope.plasmid.getSequence();
-                        var watchArr = [t.center.x, t.center.y, t.radius, t.thickness, p.length, $scope.tickoffset, $scope.ticklength, $scope.interval];
-                        return watchArr.join();
-                    }, function(newValue) {
-                        element.attr("d", controller.getPath());
-                    });
+            require: ['scale', '^track'],
+            link: {
+                pre : function(scope, elem, attrs, controllers) {
+                    var scaleController = controllers[0],trackController = controllers[1];
+                    scaleController.init(trackController);
+                },
+                post :  function(scope, elem, attrs, controllers) {
+                    var scaleController = controllers[0];
+                    var svg = scaleController.scale.svg;
+                    svg.append(elem[0].childNodes);
+                    elem.replaceWith(svg);
                 }
-            ]
+            },
+            controller: ['$scope', '$element', '$attrs', function($scope, $element, $attrs) {
+                var scale;
+                this.init = function(trackController) {
+                    scale = trackController.track.addScale($element,$attrs);
+                };
+                Object.defineProperty(this,"scale",{
+                    get: function() {return scale;},
+                });
+
+                $scope.$watch(
+                    function() {
+                        var track = scale.track;
+                        var plasmid = track.plasmid;
+                        return [plasmid.sequencelength, track.center.x, track.center.y, track.radius, track.thickness, $scope.tickoffset, $scope.ticklength, $scope.interval].join();
+                    },
+                    function(newValue) {
+                        if (newValue && scale){
+                            newValues = newValue.split(",");
+                            scale.tickoffset = newValues[5];
+                            scale.ticklength = newValues[6];
+                            scale.interval = newValues[7];
+                            scale.draw();
+                        }
+                    }
+                );
+                
+            }]
         };
     }
 ]);
@@ -302,53 +306,47 @@ app.directive("scale", ['SVGUtil',
 app.directive("scalelabel", ['SVGUtil',
     function(SVGUtil) {
         return {
-            restrict: 'A',
+            restrict: 'AE',
             scope: {
-                interval: "=",
                 labeloffset: "="
             },
-            require: ['scalelabel', '^track', '^plasmid'],
-            link: function(scope, elem, attrs, controllers) {
-                var g = angular.element(SVGUtil.createSVGNode('g', attrs));
-                elem.replaceWith(g);
-                controllers[0].init(g, controllers[1], controllers[2]);
-            },
-            controller: ['$scope', '$attrs',
-                function($scope, $attrs) {
-                    var controller = this,
-                        element;
-                    this.init = function(elem, track, plasmid) {
-                        element = elem;
-                        $scope.track = track;
-                        $scope.plasmid = plasmid;
-                    };
-                    this.getElements = function() {
-                        var t = $scope.track.getDimensions();
-                        var p = $scope.plasmid.getSequence();
-                        var inwardLabelFlg = $attrs.direction == 'in';
-                        var labeloffset = (Number($scope.labeloffset || 15)) * (inwardLabelFlg ? -1 : 1);
-                        var radius = t.radius + labeloffset + (inwardLabelFlg ? 0 : t.thickness);
-                        var interval = Number($scope.interval);
-                        return SVGUtil.getElements.label(t.center.x, t.center.y, radius, interval, p.length);
-                    };
-                    $scope.$watch(function() {
-                        var t = $scope.track.getDimensions();
-                        var p = $scope.plasmid.getSequence();
-                        var watchArr = [t.center.x, t.center.y, t.radius, t.thickness, p.length, $scope.labeloffset, $scope.interval];
-                        return watchArr.join();
-                    }, function() {
-                        var labelArr = controller.getElements();
-                        element.empty();
-                        for (i = 0; i <= labelArr.length - 1; i++) {
-                            var t = angular.element(SVGUtil.createSVGNode('text', $attrs));
-                            t.attr("x", labelArr[i].x);
-                            t.attr("y", labelArr[i].y);
-                            t.text(labelArr[i].text);
-                            element.append(t);
-                        }
-                    });
+            require: ['scalelabel', '^scale'],
+            link: {
+                pre : function(scope, elem, attrs, controllers) {
+                    var scalelabelController = controllers[0],scaleController = controllers[1];
+                    scalelabelController.init(scaleController);
+                },
+                post :  function(scope, elem, attrs, controllers) {
+                    var scalelabelController = controllers[0];
+                    var svg = scalelabelController.scalelabel.svg;
+                    svg.append(elem[0].childNodes);
+                    elem.replaceWith(svg);
                 }
-            ]
+            },
+            controller: ['$scope', '$element', '$attrs', function($scope, $element, $attrs) {
+                var scalelabel;
+                this.init = function(scaleController) {
+                    scalelabel = scaleController.scale.addLabel($element,$attrs);
+                };
+                Object.defineProperty(this,"scalelabel",{
+                    get: function() {return scalelabel;},
+                });
+
+                $scope.$watch(
+                    function() {
+                        var scale = scalelabel.scale;
+                        var track = scale.track;
+                        return [track.center.x, track.center.y, scale.radius, scale.interval, scale.total, scalelabel.labeloffset].join();
+                    },
+                    function(newValue) {
+                        if (newValue && scalelabel){
+                            newValues = newValue.split(",");
+                            scalelabel.labeloffset = newValues[6];
+                            scalelabel.draw();
+                        }
+                    }
+                );
+            }]
         };
     }
 ]);

@@ -1,6 +1,6 @@
 app.factory("PlasmidLib", ["SVGUtil", function(SVGUtil){
 
-    var plasmidArr = {}, trackArr = {}, markerArr = {};
+    var plasmidArr = {}, trackArr = {}, markerArr = {}, scaleArr = {};
 
     function Plasmid(element,attrs){
          var _height, _width, _sequence, _sequencelength, _tracks = {};
@@ -72,7 +72,7 @@ app.factory("PlasmidLib", ["SVGUtil", function(SVGUtil){
     }
 
     function Track(plasmid, element, attrs){
-        var _radius,  _thickness, _markers = {};
+        var _radius,  _thickness, _markers = {}, _scales = {};
         var track = this;
 
         var g = angular.element(SVGUtil.svg.createNode('g'));
@@ -118,6 +118,20 @@ app.factory("PlasmidLib", ["SVGUtil", function(SVGUtil){
 
         Object.defineProperty(this,"markers",{
             get: function() {return _markers;}
+        });
+
+        this.addScale = function(element, attrs){
+            var scale = new Scale(this, element,attrs);
+            var id = attrs.id;
+            if (id){
+                _scales[id] = scale;
+                scaleArr[id] = scale;
+            }
+            return scale;
+        };
+
+        Object.defineProperty(this,"scales",{
+            get: function() {return _scales;}
         });
 
         this.draw = function(){
@@ -270,11 +284,116 @@ app.factory("PlasmidLib", ["SVGUtil", function(SVGUtil){
         */
     }
 
+    function Scale(track, element, attrs){
+
+        var _interval,  _ticklength, _tickoffset;
+        var scale = this;
+        var plasmid = track.plasmid;
+        var g = angular.element(SVGUtil.svg.createNode('g', attrs));
+        var path = angular.element(SVGUtil.svg.createNode('path', attrs));
+        var _inwardflg = (attrs.direction=='in');
+
+        g.append(path);
+        this.svg = g;
+        this.track = track;
+        this.attrs = attrs;
+
+        Object.defineProperty(this,"interval",{
+            get: function() {return _interval;},
+            set: function(value) {
+                _interval = Number(value);
+            }
+        });
+
+        Object.defineProperty(this,"total",{
+            get: function() {
+                return track.plasmid.sequencelength;
+            }
+        });
+
+        Object.defineProperty(this,"inwardflg",{
+            get: function() {return _inwardflg;},
+        });
+
+        Object.defineProperty(this,"ticklength",{
+            get: function() {return _ticklength;},
+            set: function(value) {
+                _ticklength = (_inwardflg ? -1 : 1) * Number(value || 3);
+            }
+        });
+
+        Object.defineProperty(this,"tickoffset",{
+            get: function() {return _tickoffset;},
+            set: function(value) {
+                _tickoffset = (_inwardflg ? -1 : 1) * Number(value || 0);
+            }
+        });
+
+        Object.defineProperty(this,"radius",{
+            get: function() {
+                return (_inwardflg) ? track.radius : track.radius + track.thickness;
+            },
+        });
+
+        Object.defineProperty(this,"scales",{
+            get: function() {return _scales;}
+        });
+
+        this.addLabel = function(element, attrs){
+            var scaleLabel = new ScaleLabel(this, element,attrs);
+            return scaleLabel;
+        };
+
+        this.draw = function(){
+            path.attr("d", SVGUtil.svg.path.scale(track.center.x, track.center.y, scale.radius, scale.interval, plasmid.sequencelength, scale.ticklength));
+        };
+    }
+
+    function ScaleLabel(scale, element, attrs){
+
+        var _labeloffset, DEFAULT_LABELOFFSET = 15;
+        var _radius;
+        var scalelabel = this;
+        var g = angular.element(SVGUtil.svg.createNode('g', attrs));
+
+        this.svg = g;
+        this.scale = scale;
+        this.attrs = attrs;
+
+        Object.defineProperty(this,"labeloffset",{
+            get: function() {return _labeloffset;},
+            set: function(value) {
+                _labeloffset = Number(value || DEFAULT_LABELOFFSET) * (scale.inwardflg ? -1 : 1);
+            }
+        });
+
+        Object.defineProperty(this,"radius",{
+            get: function() {
+                return scale.radius + _labeloffset + (scale.inwardflg ? 0 : 1);
+            }
+        });
+
+        this.draw = function(){
+            var track = scale.track;
+            var labels = SVGUtil.svg.element.scalelabels(track.center.x, track.center.y, scalelabel.radius, scale.interval, scale.total);
+            g.empty();
+            for (i = 0; i <= labels.length - 1; i++) {
+                var t = angular.element(SVGUtil.svg.createNode('text', attrs));
+                t.attr("x", labels[i].x);
+                t.attr("y", labels[i].y);
+                t.text(labels[i].text);
+                g.append(t);
+            }
+
+        };
+
+    }
 
     return {
         plasmids : plasmidArr,
         tracks : trackArr,
         markers : markerArr,
+        scales : scaleArr,
         Plasmid : Plasmid
     };
 
@@ -295,7 +414,11 @@ app.factory("SVGUtil", function() {
             createNode : createNode,
             path : {
                 donut : pathDonut,
-                arc : pathArc
+                arc : pathArc,
+                scale : pathScale,
+            },
+            element : {
+                scalelabels : elementScaleLabels
             }
         }
     };
@@ -369,57 +492,53 @@ app.factory("SVGUtil", function() {
         var d = ["M", start.x, start.y, "A", radius, radius, 0, arcSweep, 0, end.x, end.y, "L", arrow_start_1.x, arrow_start_1.y, "L", arrow_start_2.x, arrow_start_2.y, "L", arrow_start_3.x, arrow_start_3.y, "L", arrow_start_4.x, arrow_start_4.y, "A", radius + width, radius + width, 0, arcSweep, 1, start2.x, start2.y, "L", arrow_end_1.x, arrow_end_1.y, "L", arrow_end_2.x, arrow_end_2.y, "L", arrow_end_3.x, arrow_end_3.y, "L", arrow_end_4.x, arrow_end_4.y, "z"].join(" ");
         return d;
     }
-/*
-            scale : function(x, y, radius, interval, total, tickLength){
 
-                x = Number(x);
-                y = Number(y);
-                radius = Number(radius);
-                interval = Number(interval);
-                total = Number(total);
-                tickLength = Number(tickLength);
+    function pathScale(x, y, radius, interval, total, tickLength){
 
-                var numTicks = Number(interval)>0 ? Number(total)/Number(interval) : 0,
-                    beta = 2 * Math.PI/numTicks,
-                    precision = -1,
-                    d = '';
+        x = Number(x);
+        y = Number(y);
+        radius = Number(radius);
+        interval = Number(interval);
+        total = Number(total);
+        tickLength = Number(tickLength);
 
+        var numTicks = Number(interval)>0 ? Number(total)/Number(interval) : 0,
+            beta = 2 * Math.PI/numTicks,
+            precision = -1,
+            d = '';
 
-                for (i = 0; i < numTicks; i++) {
-                    var alpha = beta * i - Math.PI / 2, cos = Math.cos(alpha), sin = Math.sin(alpha);
-                    d += "M" + Math.round10((x + (radius * cos)), precision) + "," + Math.round10((y + (radius * sin)), precision) + " L" + Math.round10((x + ((radius + tickLength) * cos)), precision) + "," + Math.round10((y + ((radius + tickLength) * sin)), precision) + " ";
-                }
-                return d;
-
-            }
-        },
-        getElements : {
-            label : function(x, y, radius, interval, total){
-
-                x = Number(x);
-                y = Number(y);
-                radius = Number(radius);
-                interval = Number(interval);
-                total = Number(total);
-
-                var numTicks = Number(interval)>0 ? Number(total)/Number(interval) : 0,
-                    beta = 2 * Math.PI/numTicks,
-                    precision = -1,
-                    labelArr = [];
-
-
-                for (i = 0; i < numTicks; i++) {
-                    var alpha = beta * i - Math.PI / 2, cos = Math.cos(alpha), sin = Math.sin(alpha);
-                    labelArr.push({
-                        x : Math.round10((x + (radius * cos)), precision),
-                        y : Math.round10((y + (radius * sin)), precision),
-                        text : interval * i
-                    });
-                }
-                return labelArr;
-
-            }
+        for (i = 0; i < numTicks; i++) {
+            var alpha = beta * i - Math.PI / 2, cos = Math.cos(alpha), sin = Math.sin(alpha);
+            d += "M" + Math.round10((x + (radius * cos)), precision) + "," + Math.round10((y + (radius * sin)), precision) + " L" + Math.round10((x + ((radius + tickLength) * cos)), precision) + "," + Math.round10((y + ((radius + tickLength) * sin)), precision) + " ";
         }
-    };
-    */
+        return d;
+
+    }
+ 
+    function elementScaleLabels(x, y, radius, interval, total){
+
+        x = Number(x);
+        y = Number(y);
+        radius = Number(radius);
+        interval = Number(interval);
+        total = Number(total);
+
+        var numTicks = Number(interval)>0 ? Number(total)/Number(interval) : 0,
+            beta = 2 * Math.PI/numTicks,
+            precision = -1,
+            labelArr = [];
+
+
+        for (i = 0; i < numTicks; i++) {
+            var alpha = beta * i - Math.PI / 2, cos = Math.cos(alpha), sin = Math.sin(alpha);
+            labelArr.push({
+                x : Math.round10((x + (radius * cos)), precision),
+                y : Math.round10((y + (radius * sin)), precision),
+                text : interval * i
+            });
+        }
+        return labelArr;
+
+    }
+
 });

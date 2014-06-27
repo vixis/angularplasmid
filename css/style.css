@@ -30,6 +30,7 @@
 }
 .scale-label {
     fill:#999;
+    stroke:none;
     text-anchor:middle;
     alignment-baseline:middle;
     font-family: 'Lato', 'Arial';

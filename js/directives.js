@@ -29,49 +29,46 @@ app.directive("plasmidapi",['PlasmidLib', function(PlasmidLib){
     };
 }]);
 
-app.directive("plasmid", ['PlasmidLib','SVGUtil',
-    function(PlasmidLib, SVGUtil) {
+app.directive("plasmid", ['PlasmidLib',
+    function(PlasmidLib) {
         return {
-            restrict: "A",
+            restrict: 'AE',
+            type: 'svg',
+            replace : true,
+            transclude : true,
             scope: {
                 sequence: '=',
                 length: '=',
-                height: '=',
-                width: '='
+                plasmidheight: '=',
+                plasmidwidth: '='
             },
-            link: {
-                pre : function(scope,elem,attrs, plasmidController) {
-                    plasmidController.init();
-                },
-                post : function(scope,elem,attrs,plasmidController){
+            template : '<svg ng-attr-width="{{plasmidwidth}}" ng-attr-height="{{plasmidheight}}" ng-transclude></svg>',
+            link : function(scope,elem,attrs, plasmidController) {
 
-                    var svg = angular.element(SVGUtil.svg.createNode('svg', attrs, ['height', 'width']));
-                    plasmidController.plasmid.svg = svg;
-                    svg.append(elem[0].childNodes);
-                    elem.replaceWith(svg);
-
-                }
+                scope.$watch(
+                    function(){
+                        return [scope.plasmidheight, scope.plasmidwidth, scope.length, scope.sequence].join();
+                    },
+                    function(newValue) {
+                        var plasmid = plasmidController.plasmid;
+                        if (newValue && plasmid) {
+                            newValues = newValue.split(",");
+                            plasmid.height = newValues[0];
+                            plasmid.width = newValues[1];
+                            plasmid.sequencelength = newValues[2];
+                            plasmid.sequence = newValues[3];
+                            plasmid.draw();
+                        }
+                    }
+                );
             },
-            controller: ['$scope', '$element', '$attrs', function($scope, $element, $attrs) {
-                var plasmid;
-
-                this.init = function() {
-                    plasmid = new PlasmidLib.Plasmid($element, $attrs);
-                };
+            controller: ['$element','$attrs', function($element, $attrs) {
+                var plasmid = new PlasmidLib.Plasmid($element, $attrs);
 
                 Object.defineProperty(this,"plasmid",{
                     get: function() {return plasmid;},
                 });
 
-                $scope.$watchCollection('[height, width, length, sequence]', function(newValues) {
-                    if (newValues && plasmid) {
-                        plasmid.height = newValues[0];
-                        plasmid.width = newValues[1];
-                        plasmid.sequencelength = newValues[2];
-                        plasmid.sequence = newValues[3];
-                        plasmid.draw();
-                    }
-                });
             }]
         };
     }
@@ -84,66 +81,84 @@ app.directive("plasmid", ['PlasmidLib','SVGUtil',
 app.directive("track", ['PlasmidLib', 'SVGUtil',
     function(PlasmidLib, SVGUtil) {
         return {
-            restrict: 'A',
-            require: ["track", "?^plasmid"],
+            restrict: 'AE',
+            type : 'svg',
+            replace : true,
+            transclude : true,
+            require: ["track", "^plasmid"],
             scope: {
                 radius: '=',
                 thickness: '='
             },
+            template : function(elem, attr){
+                var g = SVGUtil.svg.createNode("g");
+                var path = SVGUtil.svg.createNode("path",attr);
+                g.appendChild(path);
+                return g.outerHTML;
+            },
             link: {
                 pre : function(scope, elem, attrs, controllers) {
-                    var trackController = controllers[0], plasmidController = controllers[1];
-                    trackController.init(plasmidController);
+                    var trackController = controllers[0],
+                        plasmidController = controllers[1];
+                    var path = angular.element(elem.children()[0]);
+                    trackController.init(plasmidController, path, attrs);
                 },
-                post :  function(scope, elem, attrs, controllers) {
+                post : function(scope, elem, attrs, controllers, transcludeFn) {
 
-                    var trackController = controllers[0];
-                    var g = angular.element(SVGUtil.svg.createNode('g'));
-                    var path = angular.element(SVGUtil.svg.createNode('path', attrs));
+                    SVGUtil.svg.removeAttributes(elem[0]);
+
+                    var path = angular.element(elem.children()[0]);
                     path.css("fill-rule", "evenodd");
-                    g.append(path);
-                    trackController.track.svg = path;
-                    g.append(elem[0].childNodes);
-                    elem.replaceWith(g);
+
+                    transcludeFn(scope, function(content){
+                        elem.append(content);
+                    });
+
+                    var trackController = controllers[0],
+                        plasmidController = controllers[1];
+
+                    var track = trackController.track;
+
+                    scope.$watch(
+                        function() {
+                            return [track.center.x, track.center.y, scope.radius, scope.thickness].join();
+                        },
+                        function(newValue) {
+                            if (newValue && track){
+                                newValues = newValue.split(",");
+                                track.radius = newValues[2];
+                                track.thickness = newValues[3];
+                                track.draw();
+                            }
+                        }
+                    );
                 }
             },
-            controller: ['$scope', '$element', '$attrs', function($scope, $element, $attrs) {
+            controller: function() {
 
                 var track;
 
-                this.init = function(plasmidController) {
-                    track = plasmidController.plasmid.addTrack($element,$attrs);
+                this.init = function(plasmidController, trackElem, trackAttrs) {
+                    track = plasmidController.plasmid.addTrack(trackElem,trackAttrs);
                 };
 
                 Object.defineProperty(this,"track",{
                     get: function() {return track;},
                 });
-
-
-                $scope.$watch(
-                    function() {
-                        return [track.center.x, track.center.y, $scope.radius, $scope.thickness].join();
-                    },
-                    function(newValue) {
-                        if (newValue && track){
-                            newValues = newValue.split(",");
-                            track.radius = newValues[2];
-                            track.thickness = newValues[3];
-                            track.draw();
-                        }
-                    }
-                );
-            }]
+            }
         };
     }
 ]);
 /*----------------------------------------------------------------------------------- 
     A marker is an arc that can be used to designate a special area on a track
 ------------------------------------------------------------------------------------*/
-app.directive("marker", ['PlasmidLib',
-    function(PlasmidLib) {
+app.directive("marker", ['PlasmidLib','SVGUtil',
+    function(PlasmidLib, SVGUtil) {
         return {
             restrict: 'AE',
+            type: 'svg',
+            replace : true,
+            require: ['marker', '^track'],
             scope: {
                 start: "=",
                 end: "=",
@@ -151,56 +166,56 @@ app.directive("marker", ['PlasmidLib',
                 offsetthickness: "=",
                 markerclick: "&"
             },
-            require: ['marker', '^track'],
+            template : function(elem, attr){
+                var g = SVGUtil.svg.createNode("g");
+                var path = SVGUtil.svg.createNode("path",attr);
+                g.appendChild(path);
+                return g.outerHTML;
+            },
             link: {
                 pre : function(scope, elem, attrs, controllers) {
-                    var markerController = controllers[0],trackController = controllers[1];
-                    markerController.init(trackController);
+                    var markerController = controllers[0],
+                        trackController = controllers[1];
+                    var path = angular.element(elem.children()[0]);
+                    markerController.init(trackController, path, attrs);
                 },
-                post :  function(scope, elem, attrs, controllers) {
-                    var markerController = controllers[0];
-                    var svg = markerController.marker.svg;
-                    svg.append(elem[0].childNodes);
-                    elem.replaceWith(svg);
-                    /*
-                    marker.svg.on("click", function(e) {
-                        var marker = scope;
-                        scope.markerclick({
-                            $e: e,
-                            $marker: marker
-                        });
-                    });
-                    */
+                post: function(scope, elem, attrs, controllers) {
+                    SVGUtil.svg.removeAttributes(elem[0]);
+
+                    var markerController = controllers[0],
+                        trackController = controllers[1];
+                    
+                    var marker = markerController.marker;
+
+                    scope.$watch(
+                        function() {
+                            var track = trackController.track;
+                            var plasmid = track.plasmid;
+                            return [plasmid.sequencelength, track.center.x, track.center.y, track.radius, track.thickness, scope.offsetradius, scope.offsetthickness, scope.start, scope.end ].join();
+                        },
+                        function(newValue) {
+                            if (newValue && marker){
+                                newValues = newValue.split(",");
+                                marker.offsetradius = newValues[5];
+                                marker.offsetthickness = newValues[6];
+                                marker.start = newValues[7];
+                                marker.end = newValues[8];
+                                marker.draw();
+                            }
+                        }
+                    );
                 }
             },
-            controller: ['$scope', '$element', '$attrs', function($scope, $element, $attrs) {
+            controller: function() {
                 var marker;
-                this.init = function(trackController) {
-                    marker = trackController.track.addMarker($element,$attrs);
+                this.init = function(trackController, markerElem, markerAttrs) {
+                    marker = trackController.track.addMarker(markerElem, markerAttrs);
                 };
                 Object.defineProperty(this,"marker",{
                     get: function() {return marker;},
                 });
-
-                $scope.$watch(
-                    function() {
-                        var track = marker.track;
-                        var plasmid = track.plasmid;
-                        return [plasmid.sequencelength, track.center.x, track.center.y, track.radius, track.thickness, $scope.offsetradius, $scope.offsetthickness, $scope.start, $scope.end ].join();
-                    },
-                    function(newValue) {
-                        if (newValue && marker){
-                            newValues = newValue.split(",");
-                            marker.offsetradius = newValues[5];
-                            marker.offsetthickness = newValues[6];
-                            marker.start = newValues[7];
-                            marker.end = newValues[8];
-                            marker.draw();
-                        }
-                    }
-                );
                 
-            }]
+            }
         };
     }
 ]);

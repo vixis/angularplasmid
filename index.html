@@ -11,11 +11,31 @@
 	</head>
 	<body ng-controller='MainCtrl'>
 		
-		<grandparent>
-			<parent>
-				<child></child>
-			</parent>
-		</grandparent>
+		SVG Length : <input type="number" spinner ng-model='l' ng-init='l=360'/>
+		SVG Size : <input type="number" spinner ng-model='s' ng-init='s=450'/>
+		Track Size : <input type="number"  spinner ng-model="r" ng-init="r=50"/>
+		Track Thickness :  <input spinner type="number"  ng-model="thick" ng-init="thick=15"/>
+		Scale Interval :  <input spinner type="number"  ng-model="i" ng-init="i=20"/>
+		<br/>
+		<button ng-click="start()">Start</button>
+		<button ng-click="stop()">Stop</button>
+		<hr/>
 
+		<div style="position:relative" plasmidapi name="api">
+			<plasmid id="p{{p}}" ng-repeat="p in [1,2,3]" class="plasmid" plasmidheight="s" plasmidwidth="s" sequencelength="l">
+				<plasmidtrack ng-repeat="t in [1,2]" class="track" radius="r+(t*50)" thickness="thick" >
+					<trackscale class="scale-minor" interval="l/100" ticklength="2" direction="out"></trackscale>
+					<trackscale class="scale-major" interval="i" ticklength="2" direction="out" showlabels="1" labelclass="scale-label"></trackscale>
+					<trackmarker ng-repeat="m in markers" start="m.start" end="m.end" style="fill:{{m.color}}" offsetthickness="10" offsetradius="-5" arrowendlength="5"></trackmarker>
+				</plasmidtrack>
+			</plasmid>
+			<!--
+			WORKING ON ADDING GETPOSITION TO MARKERS
+			<div ng-repeat="m in api.plasmids[0].tracks[1].markers" class="marker-label" style="position:absolute;left:{{m.getPosition(2,40).x}}px;top:{{api.plasmids[0].tracks[1].getPosition(100,2,40).y}}px">Pos#1</div>
+			-->
+
+			<div class="marker-label" style="position:absolute;left:{{api.plasmids[0].tracks[1].getPosition(220,2,40).x}}px;top:{{api.plasmids[0].tracks[1].getPosition(220,2,40).y}}px">Pos#2</div>
+			<div class="marker-label" style="position:absolute;left:{{api.plasmids[0].tracks[1].getPosition(300,2,40).x}}px;top:{{api.plasmids[0].tracks[1].getPosition(300,2,40).y}}px">Pos#3</div>
+		</div>
 	</body>
 </html>

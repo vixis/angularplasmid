@@ -394,9 +394,19 @@ app.factory("SVGUtil", function() {
         util - General utilities
         svg - SVG node, path calculations
     */
+
+    var plasmids = [], tracks = [], markers = [];
+
     return {
+        api : {
+            addPlasmid : addPlasmid,
+            plasmids : plasmids,
+            plasmidtracks : tracks,
+            trackmarkers : markers
+        },
         util : {
             polarToCartesian : polarToCartesian,
+            swapProperties : swapProperties
         },
         svg : {
             createNode : createNode,
@@ -412,13 +422,24 @@ app.factory("SVGUtil", function() {
         }
     };
 
-
+    function addPlasmid(plasmid){
+        plasmids.push(plasmid);
+    }
     function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
         var angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
         return {
             x: centerX + (radius * Math.cos(angleInRadians)),
             y: centerY + (radius * Math.sin(angleInRadians))
         };
+    }
+
+    function swapProperties(elemFrom, elemTo){
+        var PROPLIST = ['id', 'name', 'class', 'style'];
+        for(var i=0;i<=PROPLIST.length;i++){
+            var property = PROPLIST[i];
+            elemTo.attr(property, elemFrom.attr(property));
+            elemFrom.removeAttr(property);
+        }
     }
 
     function createNode(name, settings, excludeSettings) {
@@ -443,7 +464,7 @@ app.factory("SVGUtil", function() {
     }
 
     function pathDonut(x, y, radius, width) {
-        x = Number(x); y = Number(y); radius = Number(radius); width = Number(width);
+        x = Number(x || 0); y = Number(y || 0); radius = Number(radius || 0); width = Number(width || 0);
 
         var innerRing = {
             start : polarToCartesian(x, y, radius, 359.9999),
@@ -495,7 +516,7 @@ app.factory("SVGUtil", function() {
         radius = Number(radius);
         interval = Number(interval);
         total = Number(total);
-        tickLength = Number(tickLength);
+        tickLength = Number(tickLength || 2);
 
         var numTicks = Number(interval)>0 ? Number(total)/Number(interval) : 0,
             beta = 2 * Math.PI/numTicks,

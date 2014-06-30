@@ -1,8 +1,9 @@
 .plasmid {
     background-color: #fff;
+    margin:10px;
 }
 .track {
-    stroke:#ddd;
+    stroke:#999;
     stroke-width:0px;
     fill:#f0f0f0;
 }

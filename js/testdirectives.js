@@ -175,11 +175,23 @@ app.directive("plasmidtrack", ['SVGUtil', function(SVGUtil){
                 scaleControllers.push(scaleController);
             };
 
+            this.markergroup = function(groupName){
+                var items = [];
+                angular.forEach(markerControllers, function(item){
+                    if (item.marker.markergroup==groupName){
+                        items.push(item);
+                    }
+                });
+                return items;
+            };
+
             Object.defineProperty($scope,"center",{
                 get: function() {
                     return plasmidController.plasmid.center;
                 }
             });
+
+
     
             this.markers = markerControllers;
             this.track = $scope;
@@ -200,6 +212,7 @@ app.directive("trackmarker", ['SVGUtil', function(SVGUtil){
             end: "=",
             offsetradius: "=",
             offsetthickness: "=",
+            markergroup: "@",
             arrowstartlength : "@",
             arrowstartwidth : "@",
             arrowstartangle : "@",
@@ -244,7 +257,29 @@ app.directive("trackmarker", ['SVGUtil', function(SVGUtil){
                 var path = SVGUtil.svg.path.arc(center.x, center.y, $scope.radius, $scope.startangle, $scope.endangle, $scope.thickness, $scope.arrowstart, $scope.arrowend);
                 element.attr("d", path);
             };
+            this.getPosition = function(hAlign, vAlign, hAdjust, vAdjust){
+                var radius, angle;
+                var VALIGN_CENTER = 0; VALIGN_INNER = 1; VALIGN_OUTER = 2;
+                var HALIGN_CENTER = 0; HALIGN_LEFT = 1;  HALIGN_RIGHT = 2;
+                hAdjust = Number(hAdjust || 0); vAdjust = Number(vAdjust || 0);
 
+
+                switch (vAlign){
+                    case VALIGN_OUTER : radius = $scope.radius + $scope.thickness + vAdjust; break;
+                    case VALIGN_INNER : radius = $scope.radius + vAdjust; break;
+                    default : radius = $scope.radius + ($scope.thickness/2) + vAdjust; break;
+                }
+
+                switch (hAlign){
+                    case HALIGN_LEFT : angle = $scope.startangle + hAdjust; break;
+                    case HALIGN_RIGHT : angle = $scope.endangle + hAdjust; break;
+                    default : angle = $scope.midangle + hAdjust; break;
+                }
+
+                var center = trackController.track.center;
+                return  SVGUtil.util.polarToCartesian(center.x, center.y , radius, angle);
+
+            };
             Object.defineProperty($scope,"radius",{
                 get: function() {
                     return trackController.track.radius + Number($scope.offsetradius || 0);
@@ -265,6 +300,11 @@ app.directive("trackmarker", ['SVGUtil', function(SVGUtil){
                     var endAngle = (Number($scope.end||$scope.start)/Number(trackController.plasmid.sequencelength))*360;
                     endAngle += (endAngle<$scope.startangle) ? 360 : 0;
                     return endAngle;
+                },
+            });
+            Object.defineProperty($scope,"midangle",{
+                get: function() {
+                    return $scope.startangle + ($scope.endangle-$scope.startangle)/2;
                 },
             });
             Object.defineProperty($scope,"arrowstart",{
@@ -335,7 +375,7 @@ app.directive("trackscale", ['SVGUtil', function(SVGUtil){
         },
         controller : ['$scope', function($scope){
             var trackController, element, groupElement;
-            var DEFAULT_LABELOFFSET = 15;
+            var DEFAULT_LABELOFFSET = 15, DEFAULT_TICKLENGTH = 2;
 
             this.init = function(elem, groupElem, trackCtrl){
                 trackCtrl.addScale(this);
@@ -346,7 +386,7 @@ app.directive("trackscale", ['SVGUtil', function(SVGUtil){
 
             this.draw = function(){
                 var center = trackController.track.center;
-                var path = SVGUtil.svg.path.scale(center.x, center.y, $scope.radius, $scope.interval, $scope.total, $scope.ticklength);
+                var path = SVGUtil.svg.path.scale(center.x, center.y, $scope.radius, $scope.interval, $scope.total, ($scope.ticklength || DEFAULT_TICKLENGTH));
                 element.attr("d", path);
                 if ($scope.showlabels){
                     this.drawLabel();
@@ -375,7 +415,7 @@ app.directive("trackscale", ['SVGUtil', function(SVGUtil){
             });
             Object.defineProperty($scope,"radius",{
                 get: function() {
-                    return ($scope.directionflg ? trackController.track.radius : trackController.track.radius + trackController.track.thickness) +  ($scope.directionflg ? -1 : 1) * Number($scope.offset || 0) + ($scope.directionflg ? -$scope.ticklength : 0);
+                    return ($scope.directionflg ? trackController.track.radius-1 : trackController.track.radius + trackController.track.thickness+1) +  ($scope.directionflg ? -1 : 1) * Number($scope.offset || 0) + ($scope.directionflg ? -($scope.ticklength || DEFAULT_TICKLENGTH) : 0);
                 }
             });
             Object.defineProperty($scope,"directionflg",{

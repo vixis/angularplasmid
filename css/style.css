@@ -9,12 +9,13 @@
 }
 
 .marker {
-    fill:#fc3;
+    stroke:#999;
+    stroke-width:1px;
 }
 
 .marker:hover{
-    fill:#c00;
     stroke:#f00;
+    fill:#fff;    
     stroke-width:5px;
 }
 .scale-minor {
@@ -50,7 +51,7 @@
     text-anchor:middle;
     alignment-baseline:middle;
     font-size:12px;
-    font-weight:700;
+    font-weight:300;
     fill:#009;
 }
 

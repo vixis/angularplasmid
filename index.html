@@ -1,6 +1,7 @@
 <!doctype html>
 <html ng-app='plasmid-lib'>
 	<head>
+		<link rel="stylesheet" href="css/fonts/stylesheet.css" type="text/css" charset="utf-8" />
 		<link rel="stylesheet" href="css/bootstrap.min.css">
 		<link rel="stylesheet" href="css/style.css">
 		<script type="text/javascript" src="bower_components/angular/angular.js"></script>
@@ -11,31 +12,57 @@
 	</head>
 	<body ng-controller='MainCtrl'>
 		
-		SVG Length : <input type="number" spinner ng-model='l' ng-init='l=360'/>
-		SVG Size : <input type="number" spinner ng-model='s' ng-init='s=450'/>
-		Track Size : <input type="number"  spinner ng-model="r" ng-init="r=50"/>
-		Track Thickness :  <input spinner type="number"  ng-model="thick" ng-init="thick=15"/>
-		Scale Interval :  <input spinner type="number"  ng-model="i" ng-init="i=20"/>
-		<br/>
-		<button ng-click="start()">Start</button>
-		<button ng-click="stop()">Stop</button>
+		<table>
+			<tr><td>SVG Length</td><td><input type="number" spinner ng-model='l' ng-init='l=360'/></td></tr>
+			<tr><td>SVG Size</td><td><input type="number" spinner ng-model='s' ng-init='s=550'/></td></tr>
+			<tr><td>Track Size</td><td><input type="number"  spinner ng-model="r" ng-init="r=100"/></td></tr>
+			<tr><td>Track Thickness</td><td><input spinner type="number"  ng-model="thick" ng-init="thick=25"/></td></tr>
+			<tr><td>Scale Interval</td><td><input spinner type="number"  ng-model="i" ng-init="i=15"/></td></tr>
+			<tr>
+				<td colspan="2">
+					<button ng-click="start()">Start</button>
+					<button ng-click="stop()">Stop</button>
+				</td>
+			</tr>
+		</table>
 		<hr/>
 
-		<div style="position:relative" plasmidapi name="api">
-			<plasmid id="p{{p}}" ng-repeat="p in [1,2,3]" class="plasmid" plasmidheight="s" plasmidwidth="s" sequencelength="l">
-				<plasmidtrack ng-repeat="t in [1,2]" class="track" radius="r+(t*50)" thickness="thick" >
-					<trackscale class="scale-minor" interval="l/100" ticklength="2" direction="out"></trackscale>
-					<trackscale class="scale-major" interval="i" ticklength="2" direction="out" showlabels="1" labelclass="scale-label"></trackscale>
-					<trackmarker ng-repeat="m in markers" start="m.start" end="m.end" style="fill:{{m.color}}" offsetthickness="10" offsetradius="-5" arrowendlength="5"></trackmarker>
-				</plasmidtrack>
-			</plasmid>
-			<!--
-			WORKING ON ADDING GETPOSITION TO MARKERS
-			<div ng-repeat="m in api.plasmids[0].tracks[1].markers" class="marker-label" style="position:absolute;left:{{m.getPosition(2,40).x}}px;top:{{api.plasmids[0].tracks[1].getPosition(100,2,40).y}}px">Pos#1</div>
-			-->
-
-			<div class="marker-label" style="position:absolute;left:{{api.plasmids[0].tracks[1].getPosition(220,2,40).x}}px;top:{{api.plasmids[0].tracks[1].getPosition(220,2,40).y}}px">Pos#2</div>
-			<div class="marker-label" style="position:absolute;left:{{api.plasmids[0].tracks[1].getPosition(300,2,40).x}}px;top:{{api.plasmids[0].tracks[1].getPosition(300,2,40).y}}px">Pos#3</div>
+		<div style='position:absolute;left:20%'>
+			<div style="position:relative;" plasmidapi name="api">
+				<plasmid id="p{{p}}" ng-repeat="p in [1]" class="plasmid" plasmidheight="s" plasmidwidth="s" style="position:absolute" sequencelength="l">
+					<plasmidtrack ng-repeat="t in [1]" class="track" radius="r+(t*50)" thickness="thick" filter="url(#dropshadow)">
+						<trackmarker markergroup="zones" start="30" end="70" style="fill:rgba(255,0,0,1)" offsetthickness="5" offsetradius="thick+25"></trackmarker>
+						<trackmarker ng-repeat="m in markers" markergroup="ranges" start="m.start" end="m.end" ng-attr-style="fill:{{m.colorband}}" filter="url(#dropshadow)" offsetthickness="30" offsetradius="thick"></trackmarker>
+						<trackscale class="scale-minor" interval="5" direction="in"></trackscale>
+						<trackscale class="scale-major" interval="15" direction="in"></trackscale>
+						<trackscale class="scale-minor" interval="5"></trackscale>
+						<trackscale class="scale-major" interval="(r>120) ? 10 : i" showlabels="1" labelclass="scale-label" labelstyle="filter:url(#dropshadow)"></trackscale>
+						<trackmarker ng-repeat="m in markers" markergroup="positions" start="m.start" end="m.end" class="marker" ng-attr-style="fill:{{m.color}}" arrowendlength="5" arrowendwidth="5" arrowendangle="0"></trackmarker>
+						<trackmarker ng-repeat="r in enzymes" markergroup="enzymes" start="r" offsetradius="2" offsetthickness="-4" ng-attr-style="stroke:#aaa;stroke-width:1px"></trackmarker>
+					</plasmidtrack>
+					<text x="40" y="50">Test</text>
+				</plasmid>
+				<div ng-repeat="m in api.plasmids[0].tracks[0].markergroup('ranges')" class="marker-label" ng-attr-style="position:absolute;left:{{m.getPosition(0,2,0,45).x-15}}px;top:{{m.getPosition(0,2,0,45).y-10}}px;width:75px"><strong>Position</strong><br/>{{m.marker.start}} - {{m.marker.end}}</div>
+			</div>
 		</div>
+
+
+		<svg width="0" height="0">
+			<defs>
+				<filter id="dropshadow" height="120%">
+					<feGaussianBlur in="SourceAlpha" stdDeviation="4"/> <!-- stdDeviation is how much to blur -->
+					<feOffset dx="2" dy="2" result="offsetblur"/> <!-- how much to offset -->
+					<feComponentTransfer>
+						<feFuncA type="linear" slope="0.2"/>
+					</feComponentTransfer>
+					<feMerge> 
+						<feMergeNode/> <!-- this contains the offset blurred image -->
+						<feMergeNode in="SourceGraphic"/> <!-- this contains the element that the filter is applied to -->
+					</feMerge>
+				</filter>
+			</defs>	
+		</svg>
+
+
 	</body>
 </html>

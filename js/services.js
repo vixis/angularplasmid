@@ -434,7 +434,7 @@ app.factory("SVGUtil", function() {
     }
 
     function swapProperties(elemFrom, elemTo){
-        var PROPLIST = ['id', 'name', 'class', 'style'];
+        var PROPLIST = ['id', 'name', 'class', 'style','filter'];
         for(var i=0;i<=PROPLIST.length;i++){
             var property = PROPLIST[i];
             elemTo.attr(property, elemFrom.attr(property));
@@ -487,35 +487,46 @@ app.factory("SVGUtil", function() {
 
     function pathArc(x, y, radius, startAngle, endAngle, width, arrowStart, arrowEnd) {
 
+        var d, start, end;
         x = Number(x); y = Number(y); radius = Number(radius); startAngle = Number(startAngle); endAngle = Number(endAngle); width = Number(width);
         arrowStart = arrowStart || {width : 0, length : 0, angle: 0};
         arrowEnd = arrowEnd || {width : 0, length : 0, angle: 0};
 
-        endAngle = endAngle - (arrowEnd.length < 0 ? 0 : arrowEnd.length);
-        startAngle = startAngle + (arrowStart.length < 0 ? 0 : arrowStart.length);
-        var start = polarToCartesian(x, y, radius, endAngle);
-        var end = polarToCartesian(x, y, radius, startAngle);
-        var arrow_start_1 = polarToCartesian(x, y, radius - arrowStart.width, startAngle + arrowStart.angle);
-        var arrow_start_2 = polarToCartesian(x, y, radius + (width / 2), startAngle - arrowStart.length);
-        var arrow_start_3 = polarToCartesian(x, y, radius + width + arrowStart.width, startAngle + arrowStart.angle);
-        var arrow_start_4 = polarToCartesian(x, y, radius + width, startAngle);
-        var arrow_end_1 = polarToCartesian(x, y, radius + width + arrowEnd.width, endAngle - (arrowEnd.angle / 1));
-        var arrow_end_2 = polarToCartesian(x, y, radius + (width / 2), endAngle + arrowEnd.length);
-        var arrow_end_3 = polarToCartesian(x, y, radius - arrowEnd.width, endAngle - (arrowEnd.angle / 1));
-        var arrow_end_4 = polarToCartesian(x, y, radius, endAngle);
-        var start2 = polarToCartesian(x, y, radius + width, endAngle);
-        var arcSweep = endAngle - startAngle <= 180 ? "0" : "1";
-        var d = ["M", start.x, start.y, "A", radius, radius, 0, arcSweep, 0, end.x, end.y, "L", arrow_start_1.x, arrow_start_1.y, "L", arrow_start_2.x, arrow_start_2.y, "L", arrow_start_3.x, arrow_start_3.y, "L", arrow_start_4.x, arrow_start_4.y, "A", radius + width, radius + width, 0, arcSweep, 1, start2.x, start2.y, "L", arrow_end_1.x, arrow_end_1.y, "L", arrow_end_2.x, arrow_end_2.y, "L", arrow_end_3.x, arrow_end_3.y, "L", arrow_end_4.x, arrow_end_4.y, "z"].join(" ");
+        if (startAngle==endAngle){
+            // Draw a line
+            start = polarToCartesian(x, y, radius, startAngle);
+            end = polarToCartesian(x, y, radius+width, startAngle);
+            d = ["M",start.x, start.y, "L",end.x, end.y].join(" ");
+        }
+        else {
+            // Draw an arc
+            endAngle = endAngle - (arrowEnd.length < 0 ? 0 : arrowEnd.length);
+            startAngle = startAngle + (arrowStart.length < 0 ? 0 : arrowStart.length);
+            start = polarToCartesian(x, y, radius, endAngle);
+            end = polarToCartesian(x, y, radius, startAngle);
+            var arrow_start_1 = polarToCartesian(x, y, radius - arrowStart.width, startAngle + arrowStart.angle);
+            var arrow_start_2 = polarToCartesian(x, y, radius + (width / 2), startAngle - arrowStart.length);
+            var arrow_start_3 = polarToCartesian(x, y, radius + width + arrowStart.width, startAngle + arrowStart.angle);
+            var arrow_start_4 = polarToCartesian(x, y, radius + width, startAngle);
+            var arrow_end_1 = polarToCartesian(x, y, radius + width + arrowEnd.width, endAngle - (arrowEnd.angle / 1));
+            var arrow_end_2 = polarToCartesian(x, y, radius + (width / 2), endAngle + arrowEnd.length);
+            var arrow_end_3 = polarToCartesian(x, y, radius - arrowEnd.width, endAngle - (arrowEnd.angle / 1));
+            var arrow_end_4 = polarToCartesian(x, y, radius, endAngle);
+            var start2 = polarToCartesian(x, y, radius + width, endAngle);
+            var arcSweep = endAngle - startAngle <= 180 ? "0" : "1";
+            d = ["M", start.x, start.y, "A", radius, radius, 0, arcSweep, 0, end.x, end.y, "L", arrow_start_1.x, arrow_start_1.y, "L", arrow_start_2.x, arrow_start_2.y, "L", arrow_start_3.x, arrow_start_3.y, "L", arrow_start_4.x, arrow_start_4.y, "A", radius + width, radius + width, 0, arcSweep, 1, start2.x, start2.y, "L", arrow_end_1.x, arrow_end_1.y, "L", arrow_end_2.x, arrow_end_2.y, "L", arrow_end_3.x, arrow_end_3.y, "L", arrow_end_4.x, arrow_end_4.y, "z"].join(" ");
+        }
+
         return d;
     }
 
     function pathScale(x, y, radius, interval, total, tickLength){
 
-        x = Number(x);
-        y = Number(y);
-        radius = Number(radius);
-        interval = Number(interval);
-        total = Number(total);
+        x = Number(x || 0);
+        y = Number(y || 0);
+        radius = Number(radius || 0);
+        interval = Number(interval || 0);
+        total = Number(total || 0);
         tickLength = Number(tickLength || 2);
 
         var numTicks = Number(interval)>0 ? Number(total)/Number(interval) : 0,
@@ -527,6 +538,7 @@ app.factory("SVGUtil", function() {
             var alpha = beta * i - Math.PI / 2, cos = Math.cos(alpha), sin = Math.sin(alpha);
             d += "M" + Math.round10((x + (radius * cos)), precision) + "," + Math.round10((y + (radius * sin)), precision) + " L" + Math.round10((x + ((radius + tickLength) * cos)), precision) + "," + Math.round10((y + ((radius + tickLength) * sin)), precision) + " ";
         }
+        d = d || "M 0,0";
         return d;
 
     }

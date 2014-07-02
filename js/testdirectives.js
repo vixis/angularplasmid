@@ -228,6 +228,8 @@ app.directive("trackmarker", ['SVGUtil', function(SVGUtil){
             },
             post : function(scope,elem,attr,controllers,transcludeFn){
 
+                var markerController = controllers[0];
+
                 //Manually transclude children elements
                 transcludeFn(scope.$parent.$new(), function(content){
                     elem.append(content);
@@ -237,8 +239,11 @@ app.directive("trackmarker", ['SVGUtil', function(SVGUtil){
                 var g = angular.element(elem), path  = angular.element(elem.children()[0]);
                 SVGUtil.util.swapProperties(g, path);
 
+                path.on("click", function(){
+                    scope.markerclick(markerController);
+                });
+
                 // Watch for changes to marker
-                var markerController = controllers[0];
                 scope.$watchGroup(['start','end','offsetradius','offsetthickness'],function(){markerController.draw();});
 
             }
@@ -415,7 +420,7 @@ app.directive("trackscale", ['SVGUtil', function(SVGUtil){
             });
             Object.defineProperty($scope,"radius",{
                 get: function() {
-                    return ($scope.directionflg ? trackController.track.radius-1 : trackController.track.radius + trackController.track.thickness+1) +  ($scope.directionflg ? -1 : 1) * Number($scope.offset || 0) + ($scope.directionflg ? -($scope.ticklength || DEFAULT_TICKLENGTH) : 0);
+                    return ($scope.directionflg ? trackController.track.radius : trackController.track.radius + trackController.track.thickness) +  ($scope.directionflg ? -1 : 1) * Number($scope.offset || 0) + ($scope.directionflg ? -($scope.ticklength || DEFAULT_TICKLENGTH) : 0);
                 }
             });
             Object.defineProperty($scope,"directionflg",{

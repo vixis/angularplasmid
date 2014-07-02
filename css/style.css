@@ -10,7 +10,7 @@
 
 .marker {
     stroke:#999;
-    stroke-width:1px;
+    stroke-width:0px;
 }
 
 .marker:hover{

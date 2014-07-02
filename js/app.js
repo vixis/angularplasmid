@@ -6,11 +6,11 @@ app.controller('MainCtrl',['$timeout','$scope',function($timeout,$scope){
 
     var timer;
     var markers = [
-        {start:50,end:80,color:'#f80', colorband:'rgba(255,205,195,0.4)'},
-        {start:120,end:190,color:'#08f', colorband:'rgba(195,205,255,0.4)'},
-        {start:200,end:230,color:'#80f', colorband:'rgba(205,195,255,0.4)'},
-        {start:260,end:300,color:'#0f8', colorband:'rgba(195,255,205,0.4)'},
-        {start:305,end:315,color:'#f08', colorband:'rgba(255,195,205,0.4)'}
+        {start:50,end:80,color:'#a05', colorband:'rgba(255,221,238,0.4)'},
+        {start:120,end:190,color:'#50a', colorband:'rgba(238,221,255,0.4)'},
+        {start:200,end:230,color:'#05a', colorband:'rgba(221,238,255,0.4)'},
+        {start:260,end:300,color:'#5a0', colorband:'rgba(238,255,221,0.4)'},
+        {start:305,end:315,color:'#a50', colorband:'rgba(255,238,221,0.4)'}
     ];
 
     $scope.markers = markers;

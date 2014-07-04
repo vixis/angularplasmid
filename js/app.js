@@ -4,6 +4,8 @@ var app = angular.module("plasmid-lib", []);
 
 app.controller('MainCtrl',['$timeout','$scope',function($timeout,$scope){
 
+    var isZoomed;
+
     var timer;
     var markers = [
         {start:50,end:80,color:'#a05', colorband:'rgba(255,221,238,0.4)'},
@@ -35,8 +37,26 @@ app.controller('MainCtrl',['$timeout','$scope',function($timeout,$scope){
         $timeout.cancel(timer);
     };
 
-    $scope.clicked = function(item){
-        console.log(item);
+    $scope.clicked = function(item, marker, event){
+        var plasmid = angular.element(document.getElementById("p1"));
+        if (!isZoomed){
+          plasmid.css("-webkit-transform","scale(2)");
+          isZoomed = true;
+        }
+        else {
+          plasmid.css("-webkit-transform","scale(1)");
+          isZoomed = false;
+        }
+    };
+
+    $scope.save = function(){
+        var svg = document.getElementById('p1');
+        canvg(document.getElementById('canvas'), svg.outerHTML);
+        var canvas = document.getElementById("canvas");
+        var img = canvas.toDataURL("image/png");
+        var imglink = angular.element(document.getElementById('imglink'));
+        imglink.attr("href", img);
+        imglink.html("Click to see saved image");
     };
 }]);
 

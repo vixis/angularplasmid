@@ -8,7 +8,10 @@
 		<script type="text/javascript" src="js/util.js"></script>
 		<script type="text/javascript" src="js/app.js"></script>
 		<script type="text/javascript" src="js/services.js"></script>
-		<script type="text/javascript" src="js/testdirectives.js"></script>
+		<script type="text/javascript" src="js/directives.js"></script>
+		<script type="text/javascript" src="http://canvg.googlecode.com/svn/trunk/rgbcolor.js"></script> 
+		<script type="text/javascript" src="http://canvg.googlecode.com/svn/trunk/StackBlur.js"></script>
+		<script type="text/javascript" src="http://canvg.googlecode.com/svn/trunk/canvg.js"></script>		
 	</head>
 	<body ng-controller='MainCtrl'>
 		
@@ -18,10 +21,16 @@
 			<tr><td>Track Size</td><td><input type="number"  spinner ng-model="r" ng-init="r=100"/></td></tr>
 			<tr><td>Track Thickness</td><td><input spinner type="number"  ng-model="thick" ng-init="thick=30"/></td></tr>
 			<tr><td>Scale Interval</td><td><input spinner type="number"  ng-model="i" ng-init="i=15"/></td></tr>
+			<tr><td>Marker Text</td><td><input ng-model="markertext" ng-init="markertext='DANGER'"/></td></tr>
 			<tr>
 				<td colspan="2">
 					<button ng-click="start()">Start</button>
 					<button ng-click="stop()">Stop</button>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<button ng-click="save()">Save</button> <a id="imglink" href=''></a>
 				</td>
 			</tr>
 		</table>
@@ -29,71 +38,38 @@
 
 		<div style='position:absolute;left:20%'>
 			<div style="position:relative;" plasmidapi name="api">
-				<plasmid id="p{{p}}" ng-repeat="p in [1]" class="plasmid" plasmidheight="s" plasmidwidth="s" style="position:absolute" sequencelength="l">
-					<plasmidtrack ng-repeat="t in [1]" class="track" radius="r+(t*50)" thickness="thick" filter="url(#dropshadow)">
+				<plasmid id="p1" class="plasmid" plasmidheight="s" plasmidwidth="s" style="position:absolute" sequencelength="l">
+					<plasmidtrack ng-repeat="t in [1]" class="track" radius="r+(t*50)" thickness="thick" style="fill:#f0f0f0" filter="url(#dropshadow)">
 						<trackmarker ng-repeat="m in markers" markergroup="ranges" start="m.start" end="m.end" ng-attr-style="fill:{{m.colorband}}" filter="url(#dropshadow)" offsetthickness="10" offsetradius="thick"></trackmarker>
 						<trackmarker ng-repeat="m in markers" markergroup="rangestart" start="m.start" offsetthickness="10+thick" ng-attr-style="stroke-width:2px;stroke:{{m.color}};stroke-dasharray:2 4"></trackmarker>
 						<trackmarker ng-repeat="m in markers" markergroup="rangeend" start="m.end" offsetthickness="10+thick" ng-attr-style="stroke-width:2px;stroke:{{m.color}};stroke-dasharray:2 4"></trackmarker>
-						<trackscale class="scale-minor" offset="2" interval="5" direction="in"></trackscale>
+						<trackmarker markergroup="zones" start="30" end="70" style="fill:rgba(255,0,0,0.1)" offsetthickness="20" offsetradius="-10">
+							<markerlabel text="{{markertext}}" style="fill:#300" />
+						</trackmarker>
+						<trackmarker ng-repeat="m in markers" markergroup="positions" start="m.start" end="m.end" class="marker" ng-attr-style="fill:{{m.color}}" arrowendlength="3" arrowstartlength="-2" markerclick="clicked(m, $marker, $e)">
+							<markerlabel text="Start - {{m.start}}" vadjust="80"></markerlabel>
+							<markerlabel text="End - {{m.end}}" vadjust="80" hadjust="5"></markerlabel>
+						</trackmarker>
+						<trackmarker ng-repeat="r in enzymes" markergroup="enzymes" start="r" offsetradius="2" offsetthickness="-4" ng-attr-style="stroke:#aaa;stroke-width:2px"></trackmarker>
 						<trackscale class="scale-major" offset="2" interval="15" direction="in"></trackscale>
-						<trackscale class="scale-minor" offset="2" interval="5"></trackscale>
+						<trackscale class="scale-minor" offset="-thick+2" ticklength="thick+4" interval="5" style='stroke-width:1px;stroke-dasharray:1,4;stroke:#aaa'></trackscale>
 						<trackscale class="scale-major" offset="2" interval="(r>120) ? 10 : i" showlabels="1" labelclass="scale-label" labelstyle="filter:url(#dropshadow)"></trackscale>
-						<trackmarker markergroup="zones" start="30" end="70" style="fill:rgba(255,0,0,0.1)" offsetthickness="20" offsetradius="-10"></trackmarker>
-						<trackmarker ng-repeat="m in markers" markergroup="positions" start="m.start" end="m.end" class="marker" ng-attr-style="fill:{{m.color}}" arrowendlength="3" arrowstartlength="-2" markerclick="myClicked"></trackmarker>
-						<trackmarker ng-repeat="r in enzymes" markergroup="enzymes" start="r" offsetradius="2" offsetthickness="-4" ng-attr-style="stroke:#aaa;stroke-width:1px"></trackmarker>
 					</plasmidtrack>
 				</plasmid>
-				<div ng-repeat="m in api.plasmids[0].tracks[0].markergroup('ranges')" class="marker-label" ng-attr-style="position:absolute;left:{{m.getPosition(0,2,0,45).x-15}}px;top:{{m.getPosition(0,2,0,45).y-10}}px;width:75px"><strong>Position</strong><br/>{{m.marker.start}} - {{m.marker.end}}</div>
-				<div ng-repeat="m in api.plasmids[0].tracks[0].markergroup('zones')" class="marker-label" ng-attr-style="position:absolute;left:{{m.getPosition(0,1,0,-30).x-15}}px;top:{{m.getPosition(0,1,0,-30).y-10}}px;-webkit-transform:rotate(50deg)"><strong>DANGER</strong></div>
+				<!--
+				<div ng-repeat="m in api.plasmids[0].tracks[0].markergroup('ranges')" class="marker-label" ng-attr-style="position:absolute;left:{{m.marker.getPosition(0,45).outer.middle.x-15}}px;top:{{m.marker.getPosition(0,45).outer.middle.y-10}}px;width:75px"><strong>Position</strong><br/>{{m.marker.start}} - {{m.marker.end}}</div>
+				<div ng-repeat="m in api.plasmids[0].tracks[0].markergroup('zones')" class="marker-label" ng-attr-style="position:absolute;left:{{m.marker.getPosition().inner.middle.x-30}}px;top:{{m.marker.getPosition().inner.middle.y+20}}px;-webkit-transform:rotate(50deg)"><strong>DANGER</strong></div>
+				-->
 			</div>
 		</div>
-
-<!--
-		<plasmid class="plasmid" length="360" height="s" width="s">
-			<plasmidtrack class="track" radius="r" thickness="thick">
-				<trackmarker ng-repeat="m in markers" start="m.start" end="m.end" offsetthickness="20" style="fill:{{m.colorband}}"></trackmarker>
-				<div marker ng-repeat="m in markers" class="marker" start="m.start" end="m.end" arrowstartlength="-2" arrowendlength="3" markerclick="clicked(m)" style="fill:{{m.color}}">
-					<div markerlabel class="marker-label" offsetradius="t+20" style="fill:{{m.color}}" offsetangle="-(m.end-m.start)/2">{{m.start}}</div>
-					<div markerlabel class="marker-label" offsetradius="t+20" style="fill:{{m.color}}" offsetangle="(m.end-m.start)/2">{{m.end}}</div>
-				</div>
-				<div marker ng-repeat="m in markers" start="m.start" offsetthickness="20" style="stroke-width:2px;stroke:{{m.color}};stroke-dasharray:1 5"></div>
-				<div marker ng-repeat="m in markers" start="m.end" offsetthickness="20" style="stroke-width:2px;stroke:{{m.color}};stroke-dasharray:1 5"></div>
-				<div scalelabel class="scale-label" interval="20" direction="in"></div>
-				<div scale class="scale-minor" interval="5" direction="in"></div>
-				<div scale class="scale-major" interval="20" direction="in"></div>
-			</plasmidtrack>
-		</plasmid>
-
-		<div plasmid class="plasmid" length="plasmidlength" height="size" width="size">
-			<div track radius="rad" thickness="t-5" style='fill:#999;'>
-				<div scale interval="20" tickoffset="10" ticklength="3" style="stroke-width:1px;stroke:#ccc"></div>
-				<div scale interval="100" tickoffset="10" ticklength="5" style="stroke-width:2px;stroke:#f99"></div>
-				<div scalelabel class="scale-label" interval="100" labeloffset="30"></div>
-				<div marker start="300" end="400" offsetradius="-5" offsetthickness="10" style='fill:#00d;stroke-width:2px;stroke:#666;' markerclick="clicked($marker)"></div>
-				<div marker start="410" offsetradius="-20" offsetthickness="40" style='stroke-width:1px;stroke:#f00;stroke-dasharray:3 5'></div>
-				<div marker start="500" end="650" offsetradius="-5" offsetthickness="10" style='fill:#0c0;stroke-width:2px;stroke:#666' arrowendlength="7" arrowendwidth="5"></div>
-				<div marker start="690" end="900" offsetradius="-5" offsetthickness="10" style='fill:#c00;stroke-width:2px;stroke:#666' arrowendlength="7" arrowendwidth="5"></div>
-				<div marker start="1200" end="1700" offsetradius="-5" offsetthickness="10" style='fill:#f0f000;stroke-width:2px;stroke:#666;stroke-dasharray:2 2' arrowendlength="7" arrowendwidth="5">
-					<div markerlabel class="marker-label" offsetradius="-40">{{plasmidlength}}</div>
-				</div>
-				<div marker start="1800" end="100" offsetradius="-5" offsetthickness="10" style='fill:#f0f000;stroke-width:2px;stroke:#666;stroke-dasharray:2 2' arrowstartlength="7" arrowstartwidth="5">
-					<div markerlabel class="marker-label" offsetradius="-40">Hind III</div>
-				</div>
-			</div>
-		</div>
--->
-
-
-
-
 
 		<svg width="0" height="0">
 			<defs>
 				<filter id="dropshadow" height="120%">
-					<feGaussianBlur in="SourceAlpha" stdDeviation="4"/> <!-- stdDeviation is how much to blur -->
+					<feGaussianBlur in="SourceAlpha" stdDeviation="5"/> <!-- stdDeviation is how much to blur -->
 					<feOffset dx="2" dy="2" result="offsetblur"/> <!-- how much to offset -->
 					<feComponentTransfer>
-						<feFuncA type="linear" slope="0.2"/>
+						<feFuncA type="linear" slope="0.3"/>
 					</feComponentTransfer>
 					<feMerge> 
 						<feMergeNode/> <!-- this contains the offset blurred image -->
@@ -102,7 +78,7 @@
 				</filter>
 			</defs>	
 		</svg>
-
+		<canvas id="canvas" width="600px" height="600px" style="display:none"></canvas> 
 
 	</body>
 </html>

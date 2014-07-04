@@ -14,8 +14,7 @@
 }
 
 .marker:hover{
-    stroke:#f00;
-    fill:#fff;    
+    stroke:#ff6;
     stroke-width:5px;
 }
 .scale-minor {

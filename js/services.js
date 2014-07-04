@@ -428,8 +428,8 @@ app.factory("SVGUtil", function() {
     function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
         var angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
         return {
-            x: centerX + (radius * Math.cos(angleInRadians)),
-            y: centerY + (radius * Math.sin(angleInRadians))
+            x: Math.round10(centerX + (radius * Math.cos(angleInRadians)),-1),
+            y: Math.round10(centerY + (radius * Math.sin(angleInRadians)),-1)
         };
     }
 
@@ -467,12 +467,12 @@ app.factory("SVGUtil", function() {
         x = Number(x || 0); y = Number(y || 0); radius = Number(radius || 0); width = Number(width || 0);
 
         var innerRing = {
-            start : polarToCartesian(x, y, radius, 359.9999),
+            start : polarToCartesian(x, y, radius, 359),
             end : polarToCartesian(x, y, radius, 0)
         };
 
         var outerRing = {
-            start : polarToCartesian(x, y, radius + width, 359.9999),
+            start : polarToCartesian(x, y, radius + width, 359),
             end : polarToCartesian(x, y, radius + width, 0)
         };
 

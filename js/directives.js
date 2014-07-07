@@ -107,8 +107,8 @@ app.directive("plasmidtrack", ['SVGUtil', function(SVGUtil){
         },
         link : {
             pre : function(scope,elem,attr,controllers,transcludeFn){
-                var trackController = controllers[0], plasmidController = controllers[1];
-                trackController.init(angular.element(elem.children()[0]), plasmidController);
+                var trackController = controllers[0], plasmidController = controllers[1], pathElem = angular.element(elem.children()[0]);
+                trackController.init(pathElem, plasmidController);
             },
             post : function(scope,elem,attr,controllers,transcludeFn){
 
@@ -215,8 +215,8 @@ app.directive("trackscale", ['SVGUtil', function(SVGUtil){
         },
         link : {
             pre : function(scope,elem,attr,controllers,transcludeFn){
-                var scaleController = controllers[0], trackController = controllers[1];
-                scaleController.init(angular.element(elem.children()[0]), angular.element(elem.children()[1]), trackController);
+                var scaleController = controllers[0], trackController = controllers[1], pathElem = angular.element(elem.children()[0]), groupElem = angular.element(elem.children()[1]);
+                scaleController.init(pathElem, groupElem, trackController);
             },
             post : function(scope,elem,attr,controllers,transcludeFn){
 
@@ -320,8 +320,8 @@ app.directive("trackmarker", ['SVGUtil', function(SVGUtil){
         },
         link : {
             pre : function(scope,elem,attr,controllers,transcludeFn){
-                var markerController = controllers[0], trackController = controllers[1];
-                markerController.init(angular.element(elem.children()[0]), trackController);
+                var markerController = controllers[0], trackController = controllers[1], pathElem = angular.element(elem.children()[0]);
+                markerController.init(pathElem, trackController);
             },
             post : function(scope,elem,attr,controllers,transcludeFn){
 
@@ -373,45 +373,86 @@ app.directive("trackmarker", ['SVGUtil', function(SVGUtil){
                 var center = trackController.track.center;
                 return SVGUtil.svg.path.arc(center.x, center.y, $scope.radius, $scope.startangle, $scope.endangle, $scope.thickness, $scope.arrowstart, $scope.arrowend);
             };
-            $scope.getPosition = function(hAdjust, vAdjust){
+            $scope.getPosition = function(hAdjust, vAdjust, hAlign, vAlign){
+                var HALIGN_MIDDLE = 0 , HALIGN_BEGIN = 1, HALIGN_END = 2;
+                var VALIGN_CENTER = 0, VALIGN_INNER = 1, VALIGN_OUTER = 2;
+
                 hAdjust = Number(hAdjust || 0); vAdjust = Number(vAdjust || 0);
-
-                var radius = {
-                    outer :  $scope.radius + $scope.thickness + vAdjust,
-                    inner : $scope.radius + vAdjust,
-                    center : $scope.radius + ($scope.thickness/2) + vAdjust
-                };
-
-                var angle = {
-                    begin : $scope.startangle + hAdjust,
-                    end : $scope.endangle + hAdjust,
-                    middle : $scope.midangle + hAdjust,
-                };
-
                 var center = trackController.track.center;
 
-                return {
-                    outer : {
-                        begin: SVGUtil.util.polarToCartesian(center.x, center.y , radius.outer, angle.begin),
-                        middle: SVGUtil.util.polarToCartesian(center.x, center.y , radius.outer, angle.middle),
-                        end: SVGUtil.util.polarToCartesian(center.x, center.y , radius.outer, angle.end),
-                    },
-                    center : {
-                        begin: SVGUtil.util.polarToCartesian(center.x, center.y , radius.center, angle.begin),
-                        middle: SVGUtil.util.polarToCartesian(center.x, center.y , radius.center, angle.middle),
-                        end: SVGUtil.util.polarToCartesian(center.x, center.y , radius.center, angle.end),
-                    },
-                    inner : {
-                        begin: SVGUtil.util.polarToCartesian(center.x, center.y , radius.inner, angle.begin),
-                        middle: SVGUtil.util.polarToCartesian(center.x, center.y , radius.inner, angle.middle),
-                        end: SVGUtil.util.polarToCartesian(center.x, center.y , radius.inner, angle.end),
+                if (vAlign!==undefined && hAlign!==undefined){
+                    switch (vAlign){
+                        case VALIGN_INNER : radius =  $scope.radiusinner + vAdjust;break;
+                        case VALIGN_OUTER : radius =  $scope.radiusouter + vAdjust;break;
+                        default : radius =  $scope.radiuscenter + vAdjust;break;
                     }
-                };
+
+                    switch (hAlign){
+                        case HALIGN_BEGIN : angle =  $scope.startangle + hAdjust;break;
+                        case HALIGN_END : angle =  $scope.endangle + hAdjust;break;
+                        default : angle =  $scope.midangle + hAdjust;break;
+                    }
+
+                    return SVGUtil.util.polarToCartesian(center.x, center.y , radius, angle);
+                }
+                else {
+
+                    var radius = {
+                        outer :  $scope.radiusouter + vAdjust,
+                        inner : $scope.radiusinner + vAdjust,
+                        center : $scope.radiuscenter + vAdjust
+                    };
+
+                    var angle = {
+                        begin : $scope.startangle + hAdjust,
+                        end : $scope.endangle + hAdjust,
+                        middle : $scope.midangle + hAdjust,
+                    };
+
+
+                    return {
+                        outer : {
+                            begin: SVGUtil.util.polarToCartesian(center.x, center.y , radius.outer, angle.begin),
+                            middle: SVGUtil.util.polarToCartesian(center.x, center.y , radius.outer, angle.middle),
+                            end: SVGUtil.util.polarToCartesian(center.x, center.y , radius.outer, angle.end),
+                        },
+                        center : {
+                            begin: SVGUtil.util.polarToCartesian(center.x, center.y , radius.center, angle.begin),
+                            middle: SVGUtil.util.polarToCartesian(center.x, center.y , radius.center, angle.middle),
+                            end: SVGUtil.util.polarToCartesian(center.x, center.y , radius.center, angle.end),
+                        },
+                        inner : {
+                            begin: SVGUtil.util.polarToCartesian(center.x, center.y , radius.inner, angle.begin),
+                            middle: SVGUtil.util.polarToCartesian(center.x, center.y , radius.inner, angle.middle),
+                            end: SVGUtil.util.polarToCartesian(center.x, center.y , radius.inner, angle.end),
+                        }
+                    };
+                }
 
             };
+            Object.defineProperty($scope,"center",{
+                get: function() {
+                    return trackController.track.center;
+                },
+            });
             Object.defineProperty($scope,"radius",{
                 get: function() {
                     return trackController.track.radius + Number($scope.offsetradius || 0);
+                },
+            });
+            Object.defineProperty($scope,"radiusinner",{
+                get: function() {
+                    return $scope.radius;
+                },
+            });
+            Object.defineProperty($scope,"radiusouter",{
+                get: function() {
+                    return $scope.radius + $scope.thickness;
+                },
+            });
+            Object.defineProperty($scope,"radiuscenter",{
+                get: function() {
+                    return $scope.radius + $scope.thickness/2;
                 },
             });
             Object.defineProperty($scope,"thickness",{
@@ -464,41 +505,118 @@ app.directive("markerlabel", ['SVGUtil', function(SVGUtil){
         restrict: 'AE',
         type : 'svg',
         transclude: true,
-        template: "<text>{{text}}</text>",
+        template: function(elem, attr){
+            return (attr.type=='path') ? '<g><path id="" style="fill:none;stroke:none"></path><text><textpath xlink:href="#">{{text}}</textpath></text></g>' : '<text>{{text}}</text>';
+        },
         require: ['markerlabel', '^trackmarker'],
         replace : true,
         scope: {
             text : "@",
+            valign : "@",
             vadjust : "@",
+            halign : "@",
             hadjust : "@",
+            type : "@"
         },
         link: {
             pre : function(scope,elem,attr,controllers,transcludeFn){
                 var markerlabelController = controllers[0], trackMarkerController = controllers[1];
-                markerlabelController.init(elem, trackMarkerController);
+                var groupElem, pathElem, textElem;
+                if (attr.type=='path'){
+                    groupElem = angular.element(elem[0]);
+                    pathElem = angular.element(elem.children()[0]);
+                    textElem = angular.element(elem.children()[1]);
+                } else {
+                    textElem = angular.element(elem[0]);
+                }
+                markerlabelController.init(textElem, groupElem, pathElem, trackMarkerController);
             },
             post : function(scope,elem,attr,controllers,transcludeFn){
                 transcludeFn(scope.$parent, function(content){
                     elem.append(content);
                 });
 
+                //Apply directive's properties (class, style, id, name) to the text 
+                if (attr.type=='path'){
+                    var g = angular.element(elem), text  = angular.element(elem.children()[1]);
+                    SVGUtil.util.swapProperties(g, text);
+                }
             }
         },
         controller : ['$scope', function($scope){
-            var markerController, element;
+            var markerController, textElement, pathElement, groupElement;
 
-            this.init = function(elem, markerCtrl){
+            this.init = function(textElem, groupElem, pathElem, markerCtrl){
                 markerCtrl.addMarkerLabel(this);
                 markerController = markerCtrl;
-                element = elem;
+                textElement = textElem;
+                pathElement = pathElem;
+                groupElement = groupElem;
             };
 
             this.draw = function(){
-                var center = markerController.marker.getPosition($scope.hadjust,$scope.vadjust).center.middle;
-                element.attr("x", center.x);
-                element.attr("y", center.y);
+                var HALIGN_CENTER = 'center' , HALIGN_LEFT = 'left', HALIGN_RIGHT = 'right';
+
+                if ($scope.type=='path'){
+                    var textPathElem = angular.element(textElement.children()[0]);
+                    pathElement.attr("d",$scope.getPath($scope.hadjust, $scope.vadjust, $scope.halign, $scope.valign));
+                    switch ($scope.halign) {
+                        case HALIGN_LEFT :
+                            textElement.attr("text-anchor","start");
+                            textPathElem.attr("startOffset","0%");
+                            break;
+                        case HALIGN_RIGHT :
+                            textElement.attr("text-anchor","end");
+                            textPathElem.attr("startOffset","100%");
+                            break;
+                        default :
+                            textElement.attr("text-anchor","middle");
+                            textPathElem.attr("startOffset","50%");
+                            break;
+                    }
+                    var id = 'TPATH' + (Math.random() + 1).toString(36).substring(3,7);
+                    pathElement.attr("id", id);
+                    textPathElem.attr("xlink:href",'#' + id);
+                }
+                else {
+                    var halign = $scope.halign || 0;
+                    var valign = $scope.valign || 0;
+
+                    var pos = markerController.marker.getPosition($scope.hadjust, $scope.vadjust, halign, valign);
+                    textElement.attr("x", pos.x);
+                    textElement.attr("y", pos.y);
+                }
             };
 
+            $scope.getPath = function(hAdjust, vAdjust, hAlign, vAlign){
+                var VALIGN_CENTER = "center", VALIGN_INNER = "inner", VALIGN_OUTER = "outer";
+                var HALIGN_CENTER = 'center' , HALIGN_LEFT = 'left', HALIGN_RIGHT = 'right';
+
+                var marker = markerController.marker, center = marker.center, radius, startAngle, endAngle;
+
+                switch (vAlign){
+                    case VALIGN_INNER : radius = marker.radiusinner ;break;
+                    case VALIGN_OUTER : radius = marker.radiusouter ;break;
+                    default : radius = marker.radiuscenter ;break;
+                }
+
+                switch (hAlign){
+                    case HALIGN_LEFT :  startAngle = marker.startangle ;
+                                        endAngle = marker.startangle + 359.99 ;
+                                        break;
+
+                    case HALIGN_RIGHT : startAngle = marker.endangle + 1 ;
+                                        endAngle = marker.endangle ;
+                                        break;
+
+                    default :   startAngle = marker.midangle + 180.05 ;
+                                endAngle = marker.midangle + 179.95 ;
+                                break;
+                }
+
+                return SVGUtil.svg.path.arc(center.x, center.y, radius + Number(vAdjust || 0) , startAngle + Number(hAdjust || 0), endAngle + Number(hAdjust || 0), 1);
+            };
+            
             this.markerlabel = $scope;
         }]
     };

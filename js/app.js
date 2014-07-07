@@ -8,11 +8,11 @@ app.controller('MainCtrl',['$timeout','$scope',function($timeout,$scope){
 
     var timer;
     var markers = [
-        {start:50,end:80,color:'#a05', colorband:'rgba(255,221,238,0.4)'},
-        {start:120,end:190,color:'#50a', colorband:'rgba(238,221,255,0.4)'},
-        {start:200,end:230,color:'#05a', colorband:'rgba(221,238,255,0.4)'},
-        {start:260,end:300,color:'#5a0', colorband:'rgba(238,255,221,0.4)'},
-        {start:305,end:315,color:'#a50', colorband:'rgba(255,238,221,0.4)'}
+        {start:50,end:80,color:'rgba(170,0,85,0.6)', colorband:'rgba(255,221,238,0.4)'},
+        {start:120,end:190,color:'rgba(85,0,170,0.6)', colorband:'rgba(238,221,255,0.4)'},
+        {start:200,end:230,color:'rgba(0,85,170,0.6)', colorband:'rgba(221,238,255,0.4)'},
+        {start:260,end:300,color:'rgba(85,170,0,0.6)', colorband:'rgba(238,255,221,0.4)'},
+        {start:305,end:315,color:'rgba(170,85,0,0.6)', colorband:'rgba(255,238,221,0.4)'}
     ];
 
     $scope.markers = markers;

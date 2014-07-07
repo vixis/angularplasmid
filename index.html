@@ -5,7 +5,6 @@
 		<link rel="stylesheet" href="css/bootstrap.min.css">
 		<link rel="stylesheet" href="css/style.css">
 		<script type="text/javascript" src="bower_components/angular/angular.js"></script>
-		<script type="text/javascript" src="js/util.js"></script>
 		<script type="text/javascript" src="js/app.js"></script>
 		<script type="text/javascript" src="js/services.js"></script>
 		<script type="text/javascript" src="js/directives.js"></script>
@@ -43,12 +42,12 @@
 						<trackmarker ng-repeat="m in markers" markergroup="ranges" start="m.start" end="m.end" ng-attr-style="fill:{{m.colorband}}" filter="url(#dropshadow)" offsetthickness="10" offsetradius="thick"></trackmarker>
 						<trackmarker ng-repeat="m in markers" markergroup="rangestart" start="m.start" offsetthickness="10+thick" ng-attr-style="stroke-width:2px;stroke:{{m.color}};stroke-dasharray:2 4"></trackmarker>
 						<trackmarker ng-repeat="m in markers" markergroup="rangeend" start="m.end" offsetthickness="10+thick" ng-attr-style="stroke-width:2px;stroke:{{m.color}};stroke-dasharray:2 4"></trackmarker>
-						<trackmarker markergroup="zones" start="30" end="70" style="fill:rgba(255,0,0,0.1)" offsetthickness="20" offsetradius="-10">
-							<markerlabel type="path" style="fill:#f00;font-weight:bold" text="{{markertext}}" valign="inner" vadjust="-10"/>
+						<trackmarker markergroup="zones" start="30" end="70" style="fill:rgba(255,0,0,0.1);stroke:#f00" offsetthickness="20" offsetradius="-10">
+							<markerlabel type="path" style="fill:#f00;font-weight:bold;font-size:10px" text="{{markertext}}" valign="inner" vadjust="-12"/>
 						</trackmarker>
 						<trackmarker ng-repeat="m in markers" markergroup="positions" start="m.start" end="m.end" class="marker" ng-attr-style="fill:{{m.color}}" arrowendlength="3" arrowstartlength="-2" markerclick="clicked(m, $marker, $e)">
-							<markerlabel type="path" style='font-weight:bold;' text="Position" vadjust="80"></markerlabel>
-							<markerlabel type="path" style='font-size:12px' text="{{m.start}} - {{m.end}}" vadjust="65"></markerlabel>
+							<markerlabel type="path" style='font-weight:bold;' text="Position" vadjust="65" valign="outer"></markerlabel>
+							<markerlabel type="path" style='font-size:12px' text="{{m.start}} - {{m.end}}" valign="outer" vadjust="50"></markerlabel>
 						</trackmarker>
 						<trackmarker ng-repeat="r in enzymes" markergroup="enzymes" start="r" offsetradius="2" offsetthickness="-4" ng-attr-style="stroke:#aaa;stroke-width:2px"></trackmarker>
 						<trackscale class="scale-major" offset="2" interval="15" direction="in"></trackscale>

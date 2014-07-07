@@ -422,6 +422,27 @@ app.factory("SVGUtil", function() {
         }
     };
 
+    // Decimal round with precision
+    function round10(value,exp){
+        var type = 'round';
+        // If the exp is undefined or zero...
+        if (typeof exp === 'undefined' || +exp === 0) {
+            return Math[type](value);
+        }
+        value = +value;
+        exp = +exp;
+        // If the value is not a number or the exp is not an integer...
+        if (isNaN(value) || !(typeof exp === 'number' && exp % 1 === 0)) {
+            return NaN;
+        }
+        // Shift
+        value = value.toString().split('e');
+        value = Math[type](+(value[0] + 'e' + (value[1] ? (+value[1] - exp) : -exp)));
+        // Shift back
+        value = value.toString().split('e');
+        return +(value[0] + 'e' + (value[1] ? (+value[1] + exp) : exp));
+    }
+
     function addPlasmid(plasmid){
         plasmids.push(plasmid);
     }
@@ -551,7 +572,7 @@ app.factory("SVGUtil", function() {
 
         for (i = 0; i < numTicks; i++) {
             var alpha = beta * i - Math.PI / 2, cos = Math.cos(alpha), sin = Math.sin(alpha);
-            d += "M" + Math.round10((x + (radius * cos)), precision) + "," + Math.round10((y + (radius * sin)), precision) + " L" + Math.round10((x + ((radius + tickLength) * cos)), precision) + "," + Math.round10((y + ((radius + tickLength) * sin)), precision) + " ";
+            d += "M" + round10((x + (radius * cos)), precision) + "," + round10((y + (radius * sin)), precision) + " L" + round10((x + ((radius + tickLength) * cos)), precision) + "," + round10((y + ((radius + tickLength) * sin)), precision) + " ";
         }
         d = d || "M 0,0";
         return d;
@@ -575,8 +596,8 @@ app.factory("SVGUtil", function() {
         for (i = 0; i < numTicks; i++) {
             var alpha = beta * i - Math.PI / 2, cos = Math.cos(alpha), sin = Math.sin(alpha);
             labelArr.push({
-                x : Math.round10((x + (radius * cos)), precision),
-                y : Math.round10((y + (radius * sin)), precision),
+                x : round10((x + (radius * cos)), precision),
+                y : round10((y + (radius * sin)), precision),
                 text : interval * i
             });
         }

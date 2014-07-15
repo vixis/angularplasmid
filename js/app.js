@@ -15,9 +15,19 @@ app.controller('MainCtrl',['$timeout','$scope',function($timeout,$scope){
         {start:305,end:315,color:'rgba(170,85,0,0.6)', colorband:'rgba(255,238,221,0.4)'}
     ];
 
-    $scope.markers = markers;
+    $scope.mlines = [
+        {start : 25, label:'HindIII'},
+        {start : 40, label:'AcoII'},
+        {start : 90, label:'Aval'},
+        {start : 125, label:'BanII'},
+        {start : 225, label:'Ncol'},
+        {start : 325, label:'MSII'},
+        {start : 340, label:'StyI'},
+    ];
 
-    $scope.enzymes = [34,55,58,61,120,130,133,140,144,150,180,182,188,192,200];
+    $scope.mstart = 0;
+
+    $scope.markers = markers;
 
     $scope.start = function(){
         var plength = $scope.l;
@@ -29,6 +39,9 @@ app.controller('MainCtrl',['$timeout','$scope',function($timeout,$scope){
             if (val.end>plength) { val.end -= plength; }
 
         });
+
+
+        $scope.mstart = $scope.mstart>=plength ? $scope.mstart-plength : $scope.mstart + 2;
 
         timer = $timeout($scope.start, 50);
     };

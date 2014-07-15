@@ -278,7 +278,7 @@ app.directive("trackscale", ['SVGUtil', function(SVGUtil){
             });
             Object.defineProperty($scope,"radius",{
                 get: function() {
-                    return ($scope.directionflg ? trackController.track.radius : trackController.track.radius + trackController.track.thickness) +  ($scope.directionflg ? -1 : 1) * Number($scope.offset || 0) + ($scope.directionflg ? -($scope.ticklength || DEFAULT_TICKLENGTH) : 0);
+                    return ($scope.directionflg ? trackController.track.radius : trackController.track.radius + trackController.track.thickness) +  (($scope.directionflg ? -1 : 1) * Number($scope.offset || 0)) + ($scope.directionflg ? -($scope.ticklength || DEFAULT_TICKLENGTH) : 0);
                 }
             });
             Object.defineProperty($scope,"directionflg",{
@@ -501,12 +501,13 @@ app.directive("trackmarker", ['SVGUtil', function(SVGUtil){
     };
 }]);
 app.directive("markerlabel", ['SVGUtil', function(SVGUtil){
+
     return {
         restrict: 'AE',
         type : 'svg',
         transclude: true,
         template: function(elem, attr){
-            return (attr.type=='path') ? '<g><path id="" style="fill:none;stroke:none"></path><text><textpath xlink:href="#">{{text}}</textpath></text></g>' : '<text>{{text}}</text>';
+            return (attr.type=='path') ? '<g><path></path><path id="" style="fill:none;stroke:none"></path><text><textpath xlink:href="#">{{text}}</textpath></text></g>' : '<g><path></path><text>{{text}}</text></g>';
         },
         require: ['markerlabel', '^trackmarker'],
         replace : true,
@@ -516,46 +517,57 @@ app.directive("markerlabel", ['SVGUtil', function(SVGUtil){
             vadjust : "@",
             halign : "@",
             hadjust : "@",
-            type : "@"
+            type : "@",
+            showline : "@",
+            linestyle : "@",
+            lineclass : "@",
+            lineoffset : "@"
         },
         link: {
             pre : function(scope,elem,attr,controllers,transcludeFn){
                 var markerlabelController = controllers[0], trackMarkerController = controllers[1];
-                var groupElem, pathElem, textElem;
+                var groupElem, pathElem, textElem, lineElem;
                 if (attr.type=='path'){
                     groupElem = angular.element(elem[0]);
-                    pathElem = angular.element(elem.children()[0]);
-                    textElem = angular.element(elem.children()[1]);
+                    lineElem = angular.element(elem.children()[0]);
+                    pathElem = angular.element(elem.children()[1]);
+                    textElem = angular.element(elem.children()[2]);
                 } else {
-                    textElem = angular.element(elem[0]);
+                    groupElem = angular.element(elem[0]);
+                    lineElem = angular.element(elem.children()[0]);
+                    textElem = angular.element(elem.children()[1]);
                 }
-                markerlabelController.init(textElem, groupElem, pathElem, trackMarkerController);
+                markerlabelController.init(textElem, groupElem, pathElem, lineElem, trackMarkerController);
             },
             post : function(scope,elem,attr,controllers,transcludeFn){
                 transcludeFn(scope.$parent, function(content){
                     elem.append(content);
                 });
 
-                //Apply directive's properties (class, style, id, name) to the text 
-                if (attr.type=='path'){
-                    var g = angular.element(elem), text  = angular.element(elem.children()[1]);
-                    SVGUtil.util.swapProperties(g, text);
-                }
+                //Apply directive's properties (class, style, id, name) to the text
+                var g = angular.element(elem), text = (attr.type=='path') ? angular.element(elem.children()[2]) : angular.element(elem.children()[1]);
+                SVGUtil.util.swapProperties(g, text);
             }
         },
         controller : ['$scope', function($scope){
-            var markerController, textElement, pathElement, groupElement;
+            var markerController, textElement, pathElement, lineElement, groupElement;
 
-            this.init = function(textElem, groupElem, pathElem, markerCtrl){
+            this.init = function(textElem, groupElem, pathElem, lineElem, markerCtrl){
                 markerCtrl.addMarkerLabel(this);
                 markerController = markerCtrl;
                 textElement = textElem;
                 pathElement = pathElem;
+                lineElement = lineElem;
                 groupElement = groupElem;
             };
 
             this.draw = function(){
+                var VALIGN_CENTER = "center", VALIGN_INNER = "inner", VALIGN_OUTER = "outer";
                 var HALIGN_CENTER = 'center' , HALIGN_LEFT = 'left', HALIGN_RIGHT = 'right';
+                var halign = $scope.halign || 0;
+                var valign = $scope.valign || 0;
+
+                var marker = markerController.marker;
 
                 if ($scope.type=='path'){
                     var textPathElem = angular.element(textElement.children()[0]);
@@ -579,15 +591,30 @@ app.directive("markerlabel", ['SVGUtil', function(SVGUtil){
                     textPathElem.attr("xlink:href",'#' + id);
                 }
                 else {
-                    var halign = $scope.halign || 0;
-                    var valign = $scope.valign || 0;
-
-                    var pos = markerController.marker.getPosition($scope.hadjust, $scope.vadjust, halign, valign);
+                    var pos = marker.getPosition($scope.hadjust, $scope.vadjust, halign, valign);
                     textElement.attr("x", pos.x);
                     textElement.attr("y", pos.y);
                 }
-            };
 
+                if ($scope.showlineflg) {
+
+                    var markerAngle = marker.startangle;
+                    var src = marker.getPosition($scope.hadjust, Number($scope.vadjust || 0) + Number($scope.lineoffset || 0), halign, valign);
+
+                    var dstPos = marker.getPosition();
+                    var dst = $scope.valign==VALIGN_INNER ? dstPos.inner.middle : dstPos.outer.middle;
+
+
+                    lineElement.attr("d",["M",src.x, src.y,"L",dst.x,dst.y].join(" "));
+                    if ($scope.linestyle) { lineElement.attr("style", $scope.linestyle); }
+                    if ($scope.lineclass) { lineElement.attr("class", $scope.lineclass); }
+                }
+            };
+            Object.defineProperty($scope,"showlineflg",{
+                get: function() {
+                    return ($scope.showline ? true : false);
+                },
+            });
             $scope.getPath = function(hAdjust, vAdjust, hAlign, vAlign){
                 var VALIGN_CENTER = "center", VALIGN_INNER = "inner", VALIGN_OUTER = "outer";
                 var HALIGN_CENTER = 'center' , HALIGN_LEFT = 'left', HALIGN_RIGHT = 'right';

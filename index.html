@@ -45,14 +45,17 @@
 						<trackmarker markergroup="zones" start="30" end="70" style="fill:rgba(255,0,0,0.1);stroke:#f00" offsetthickness="20" offsetradius="-10">
 							<markerlabel type="path" style="fill:#f00;font-weight:bold;font-size:10px" text="{{markertext}}" valign="inner" vadjust="-12"/>
 						</trackmarker>
+						<trackmarker ng-repeat="m in mlines" start="m.start + mstart" style='stroke:#f00;stroke-width:3px'>
+							<markerlabel style="fill:#f00;font-weight:bold;font-size:12px;text-anchor:middle;alignment-baseline:middle;" text="[{{m.start + mstart}}]-{{m.label}}" vadjust="70" showline="1" linestyle="stroke:#999;stroke-width:1px;stroke-dasharray:5 2" lineoffset="-20"/>
+						</trackmarker>
+
 						<trackmarker ng-repeat="m in markers" markergroup="positions" start="m.start" end="m.end" class="marker" ng-attr-style="fill:{{m.color}}" arrowendlength="3" arrowstartlength="-2" markerclick="clicked(m, $marker, $e)">
 							<markerlabel type="path" style='font-weight:bold;' text="Position" vadjust="65" valign="outer"></markerlabel>
 							<markerlabel type="path" style='font-size:12px' text="{{m.start}} - {{m.end}}" valign="outer" vadjust="50"></markerlabel>
 						</trackmarker>
-						<trackmarker ng-repeat="r in enzymes" markergroup="enzymes" start="r" offsetradius="2" offsetthickness="-4" ng-attr-style="stroke:#aaa;stroke-width:2px"></trackmarker>
-						<trackscale class="scale-major" offset="2" interval="15" direction="in"></trackscale>
+						<trackscale class="scale-major" offset="2" interval="(r>120) ? 10 : i" direction="in"></trackscale>
 						<trackscale class="scale-minor" offset="-thick+2" ticklength="thick+4" interval="5" style='stroke-width:1px;stroke-dasharray:1,4;stroke:#aaa'></trackscale>
-						<trackscale class="scale-major" offset="2" interval="(r>120) ? 10 : i" showlabels="1" labelclass="scale-label" labelstyle="filter:url(#dropshadow)"></trackscale>
+						<trackscale class="scale-major" offset="2" interval="(r>120) ? 10 : i" direction="out" showlabels="1" labelclass="scale-label" labelstyle="filter:url(#dropshadow)"></trackscale>
 					</plasmidtrack>
 				</plasmid>
 				<!--

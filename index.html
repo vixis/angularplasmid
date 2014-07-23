@@ -1,5 +1,5 @@
 <!doctype html>
-<html ng-app='plasmid-lib'>
+<html ng-app='app'>
 	<head>
 		<link rel="stylesheet" href="css/fonts/stylesheet.css" type="text/css" charset="utf-8" />
 		<link rel="stylesheet" href="css/bootstrap.min.css">
@@ -45,8 +45,8 @@
 						<trackmarker markergroup="zones" start="30" end="70" style="fill:rgba(255,0,0,0.1);stroke:#f00" offsetthickness="20" offsetradius="-10">
 							<markerlabel type="path" style="fill:#f00;font-weight:bold;font-size:10px" text="{{markertext}}" valign="inner" vadjust="-12"/>
 						</trackmarker>
-						<trackmarker ng-repeat="m in mlines" start="m.start + mstart" style='stroke:#f00;stroke-width:3px'>
-							<markerlabel style="fill:#f00;font-weight:bold;font-size:12px;text-anchor:middle;alignment-baseline:middle;" text="[{{m.start + mstart}}]-{{m.label}}" vadjust="70" showline="1" linestyle="stroke:#999;stroke-width:1px;stroke-dasharray:5 2" lineoffset="-20"/>
+						<trackmarker ng-repeat="m in mlines" start="m.start" style='stroke:#f00;stroke-width:3px'>
+							<markerlabel style="fill:#f00;font-weight:bold;font-size:12px;text-anchor:middle;alignment-baseline:middle;" text="{{m.label}}" vadjust="70" hadjust="5" showline="1" linestyle="stroke:#999;stroke-width:1px;stroke-dasharray:5 2" lineoffset="-20"/>
 						</trackmarker>
 
 						<trackmarker ng-repeat="m in markers" markergroup="positions" start="m.start" end="m.end" class="marker" ng-attr-style="fill:{{m.color}}" arrowendlength="3" arrowstartlength="-2" markerclick="clicked(m, $marker, $e)">
@@ -58,12 +58,14 @@
 						<trackscale class="scale-major" offset="2" interval="(r>120) ? 10 : i" direction="out" showlabels="1" labelclass="scale-label" labelstyle="filter:url(#dropshadow)"></trackscale>
 					</plasmidtrack>
 				</plasmid>
+				
 				<!--
 				<div ng-repeat="m in api.plasmids[0].tracks[0].markergroup('ranges')" class="marker-label" ng-attr-style="position:absolute;left:{{m.marker.getPosition(0,45).outer.middle.x-15}}px;top:{{m.marker.getPosition(0,45).outer.middle.y-10}}px;width:75px"><strong>Position</strong><br/>{{m.marker.start}} - {{m.marker.end}}</div>
 				<div ng-repeat="m in api.plasmids[0].tracks[0].markergroup('zones')" class="marker-label" ng-attr-style="position:absolute;left:{{m.marker.getPosition().inner.middle.x-30}}px;top:{{m.marker.getPosition().inner.middle.y+20}}px;-webkit-transform:rotate(50deg)"><strong>DANGER</strong></div>
 				-->
 			</div>
 		</div>
+
 
 		<svg width="0" height="0">
 			<defs>
@@ -80,6 +82,7 @@
 				</filter>
 			</defs>	
 		</svg>
+
 		<canvas id="canvas" width="600px" height="600px" style="display:none"></canvas> 
 
 	</body>

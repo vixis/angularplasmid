@@ -261,7 +261,7 @@
                         groupElement.empty();
                         for (i = 0; i <= labels.length - 1; i += 1) {
                             t = angular.element(SVGUtil.svg.createNode('text'));
-                            if ($scope.labelclass) { t.addClass($scope.labelclass); }
+                            if ($scope.labelclass) { t.attr('class', $scope.labelclass); }
                             if ($scope.labelstyle) { t.attr('style', $scope.labelstyle); }
                             t.attr("x", labels[i].x);
                             t.attr("y", labels[i].y);
@@ -599,15 +599,15 @@
                             switch ($scope.halign) {
                             case HALIGN_LEFT:
                                 textElement.attr("text-anchor", "start");
-                                textPathElem.attr("startOffset", "0%");
+                                textPathElem[0].setAttribute("startOffset", "0%"); //jQuery can't handle case sensitive names
                                 break;
                             case HALIGN_RIGHT:
                                 textElement.attr("text-anchor", "end");
-                                textPathElem.attr("startOffset", "100%");
+                                textPathElem[0].setAttribute("startOffset", "100%");//jQuery can't handle case sensitive names
                                 break;
                             default:
                                 textElement.attr("text-anchor", "middle");
-                                textPathElem.attr("startOffset", "50%");
+                                textPathElem[0].setAttribute("startOffset", "50%");//jQuery can't handle case sensitive names
                                 break;
                             }
                             id = 'TPATH' + (Math.random() + 1).toString(36).substring(3, 7);

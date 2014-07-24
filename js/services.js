@@ -53,7 +53,7 @@
                     property,
                     i;
 
-                for (i = 0; i <= PROPLIST.length; i += 1) {
+                for (i = 0; i < PROPLIST.length; i += 1) {
                     property = PROPLIST[i];
                     elemTo.attr(property, elemFrom.attr(property));
                     elemFrom.removeAttr(property);

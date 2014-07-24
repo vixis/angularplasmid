@@ -65,8 +65,8 @@
                     Object.defineProperty($scope, "center", {
                         get: function () {
                             return {
-                                x : Number($scope.plasmidheight) / 2,
-                                y : Number($scope.plasmidwidth) / 2
+                                x : Number($scope.plasmidwidth) / 2,
+                                y : Number($scope.plasmidheight) / 2
                             };
                         }
                     });

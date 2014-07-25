@@ -22,10 +22,10 @@
                 transclude: true,
                 require: 'plasmid',
                 scope: {
-                    plasmidheight : '=',
-                    plasmidwidth : '=',
-                    sequencelength : '=',
-                    sequence : '='
+                    plasmidheight : '@',
+                    plasmidwidth : '@',
+                    sequencelength : '@',
+                    sequence : '@'
                 },
                 link : {
                     pre : function (scope, elem, attr, plasmidController) {
@@ -43,36 +43,56 @@
                     }
                 },
                 controller : ['$scope', 'SVGUtil', function ($scope, SVGUtil) {
-                    var element, trackControllers = [];
+                    var element, plasmid, tracks = [];
 
-                    this.init = function (elem) {
+                    plasmid = this;
+
+                    plasmid.init = function (elem) {
                         SVGUtil.api.addPlasmid(this);
                         element = elem;
                     };
 
-                    this.draw = function () {
-                        element.attr("height", $scope.plasmidheight);
-                        element.attr("width", $scope.plasmidwidth);
-                        angular.forEach(trackControllers, function (t) {
+                    plasmid.draw = function () {
+                        var d = plasmid.dimensions;
+                        element.attr("height", d.height);
+                        element.attr("width", d.width);
+                        angular.forEach(tracks, function (t) {
                             t.draw();
                         });
                     };
 
-                    this.addTrack = function (trackController) {
-                        trackControllers.push(trackController);
+                    plasmid.addTrack = function (track) {
+                        tracks.push(track);
                     };
 
-                    Object.defineProperty($scope, "center", {
+                    Object.defineProperty(plasmid, "center", {
                         get: function () {
+                            var d = plasmid.dimensions;
                             return {
-                                x : Number($scope.plasmidwidth) / 2,
-                                y : Number($scope.plasmidheight) / 2
+                                x : d.width / 2,
+                                y : d.height / 2
                             };
                         }
                     });
-
-                    this.tracks = trackControllers;
-                    this.plasmid = $scope;
+                    Object.defineProperty(plasmid, "dimensions", {
+                        get: function () {
+                            return {
+                                height : SVGUtil.util.Numeric($scope.plasmidheight),
+                                width : SVGUtil.util.Numeric($scope.plasmidwidth)
+                            };
+                        }
+                    });
+                    Object.defineProperty(plasmid, "sequencelength", {
+                        get: function () {
+                            return SVGUtil.util.Numeric($scope.sequencelength);
+                        }
+                    });
+                    Object.defineProperty(plasmid, "sequence", {
+                        get: function () {
+                            return $scope.sequence;
+                        }
+                    });
+                    plasmid.tracks = tracks;
                 }]
             };
         }])
@@ -86,8 +106,8 @@
                 transclude: true,
                 require: ['plasmidtrack', '^plasmid'],
                 scope: {
-                    radius: '=',
-                    thickness: '='
+                    radius: '@',
+                    width: '@'
                 },
                 link : {
                     pre : function (scope, elem, attr, controllers, transcludeFn) {
@@ -104,85 +124,98 @@
                         // Apply special style to path to allow for correct display and apply directive's properties (class, style, id, name) to the path instead of the g
                         var g = angular.element(elem), path  = angular.element(elem.children()[0]), trackController = controllers[0];
                         SVGUtil.util.swapProperties(g, path);
-                        path.css("fill-rule", "evenodd");
+                        path.attr("fill-rule", "evenodd");
 
                         // Watch for changes in the track
-                        scope.$watchGroup(['radius', 'thickness'], function () {trackController.draw(); });
+                        scope.$watchGroup(['radius', 'width'], function () {trackController.draw(); });
                     }
                 },
                 controller : ['$scope', function ($scope) {
-                    var plasmidController, element, markerControllers = [], scaleControllers = [];
+                    var plasmid, element, plasmidTrack, markers = [], scales = [];
 
-                    this.init = function (elem, plasmidCtrl) {
-                        plasmidCtrl.addTrack(this);
-                        plasmidController = plasmidCtrl;
-                        this.plasmid = plasmidController.plasmid;
+                    plasmidTrack = this;
+
+                    plasmidTrack.init = function (elem, plasmidCtrl) {
+                        plasmid = plasmidCtrl;
+                        plasmid.addTrack(this);
+                        plasmidTrack.plasmid = plasmid;
                         element = elem;
                     };
 
-                    this.draw = function () {
-                        var center = $scope.center,
-                            path = SVGUtil.svg.path.donut(center.x, center.y, $scope.radius, $scope.thickness);
+                    plasmidTrack.draw = function () {
+                        var center = plasmidTrack.center,
+                            path = SVGUtil.svg.path.donut(center.x, center.y, plasmidTrack.radius, plasmidTrack.width);
                         element.attr("d", path);
-                        angular.forEach(markerControllers, function (m) {
+                        angular.forEach(markers, function (m) {
                             m.draw();
                         });
-                        angular.forEach(scaleControllers, function (s) {
+                        angular.forEach(scales, function (s) {
                             s.draw();
                         });
                     };
 
-                    this.addMarker = function (markerController) {
-                        markerControllers.push(markerController);
+                    plasmidTrack.addMarker = function (marker) {
+                        markers.push(marker);
                     };
 
-                    this.addScale = function (scaleController) {
-                        scaleControllers.push(scaleController);
+                    plasmidTrack.addScale = function (scale) {
+                        scales.push(scale);
                     };
 
-                    this.markergroup = function (groupName) {
+                    plasmidTrack.markergroup = function (groupName) {
                         var items = [];
-                        angular.forEach(markerControllers, function (item) {
-                            if (item.marker.markergroup === groupName) {
-                                items.push(item);
+                        angular.forEach(markers, function (marker) {
+                            if (marker.markergroup === groupName) {
+                                items.push(marker);
                             }
                         });
                         return items;
                     };
 
-                    $scope.getPosition = function (pos, positionOption, radiusAdjust) {
+                    plasmidTrack.getPosition = function (pos, positionOption, radiusAdjust) {
                         radiusAdjust = Number(radiusAdjust || 0);
                         pos = Number(pos);
 
                         var POSITION_OPTION_MID = 0, POSITION_OPTION_INNER = 1, POSITION_OPTION_OUTER = 2,
-                            radius, angle, center = $scope.center,
-                            seqLen = plasmidController.plasmid.sequencelength;
+                            radius, angle, center = plasmidTrack.center,
+                            seqLen = plasmid.sequencelength;
 
                         if (seqLen > 0) {
                             angle = (pos / seqLen) * 360;
 
                             switch (positionOption) {
                             case POSITION_OPTION_INNER:
-                                radius = $scope.radius + radiusAdjust;
+                                radius = plasmidTrack.radius + radiusAdjust;
                                 break;
                             case POSITION_OPTION_OUTER:
-                                radius = $scope.radius + $scope.thickness + radiusAdjust;
+                                radius = plasmidTrack.radius + plasmidTrack.width + radiusAdjust;
                                 break;
                             default:
-                                radius = $scope.radius + ($scope.thickness / 2) + radiusAdjust;
+                                radius = plasmidTrack.radius + (plasmidTrack.width / 2) + radiusAdjust;
                                 break;
                             }
                             return SVGUtil.util.polarToCartesian(center.x, center.y, radius, angle);
                         }
                     };
-                    Object.defineProperty($scope, "center", {
+                    Object.defineProperty(plasmidTrack, "center", {
                         get: function () {
-                            return plasmidController.plasmid.center;
+                            return plasmid.center;
+                        }
+                    });
+                    Object.defineProperty(plasmidTrack, "radius", {
+                        get: function () {
+                            return SVGUtil.util.Numeric($scope.radius);
+                        }
+                    });
+                    Object.defineProperty(plasmidTrack, "width", {
+                        get: function () {
+                            return SVGUtil.util.Numeric($scope.width, 25);
                         }
                     });
 
-                    this.markers = markerControllers;
-                    this.track = $scope;
+                    plasmidTrack.markers = markers;
+                    plasmidTrack.scales = scales;
+
                 }]
             };
         }])
@@ -196,12 +229,12 @@
                 transclude: true,
                 require: ['trackscale', '^plasmidtrack'],
                 scope: {
-                    interval: "=",
-                    offset: "=",
-                    ticklength: "=",
+                    interval: "@",
+                    vadjust: "@",
+                    ticksize: "@",
                     direction: "@",
                     showlabels : "@",
-                    labeloffset : "=",
+                    labelvadjust : "@",
                     labelclass : "@",
                     labelstyle : "@"
                 },
@@ -226,43 +259,44 @@
 
                         // Watch for changes to scale
                         scaleController = controllers[0];
-                        scope.$watchGroup(['interval', 'offset', 'ticklength', 'labeloffset'], function () {scaleController.draw(); });
+                        scope.$watchGroup(['interval', 'vadjust', 'ticksize', 'labelvadjust'], function () {scaleController.draw(); });
 
 
                     }
                 },
                 controller : ['$scope', function ($scope) {
-                    var trackController, element, groupElement,
-                        DEFAULT_LABELOFFSET = 15, DEFAULT_TICKLENGTH = 3;
+                    var track, trackScale, element, groupElement,
+                        DEFAULT_LABELVADJUST = 15, DEFAULT_TICKSIZE = 3;
 
-                    this.init = function (elem, groupElem, trackCtrl) {
-                        trackCtrl.addScale(this);
-                        trackController = trackCtrl;
+                    trackScale = this;
+
+                    trackScale.init = function (elem, groupElem, trackCtrl) {
+                        track = trackCtrl;
+                        track.addScale(trackScale);
+                        trackScale.track = track;
                         element = elem;
                         groupElement = groupElem;
                     };
 
-                    this.draw = function () {
-                        var center = trackController.track.center,
-                            path = SVGUtil.svg.path.scale(center.x, center.y, $scope.radius, $scope.interval, $scope.total, ($scope.ticklength || DEFAULT_TICKLENGTH));
+                    trackScale.draw = function () {
+                        var center = track.center,
+                            path = SVGUtil.svg.path.scale(center.x, center.y, trackScale.radius, trackScale.interval, trackScale.total, trackScale.ticksize);
 
                         element.attr("d", path);
-                        if ($scope.showlabels) {
-                            this.drawLabel();
+                        if (trackScale.showlabels) {
+                            trackScale.drawLabel();
                         }
                     };
 
-                    this.drawLabel = function () {
-                        var center = trackController.track.center,
-                            labels = SVGUtil.svg.element.scalelabels(center.x, center.y, $scope.labelradius, $scope.interval, $scope.total),
-                            i,
-                            t;
+                    trackScale.drawLabel = function () {
+                        var i, t, labels, center = track.center;
 
+                        labels = SVGUtil.svg.element.scalelabels(center.x, center.y, trackScale.labelradius, trackScale.interval, trackScale.total);
                         groupElement.empty();
                         for (i = 0; i <= labels.length - 1; i += 1) {
                             t = angular.element(SVGUtil.svg.createNode('text'));
-                            if ($scope.labelclass) { t.attr('class', $scope.labelclass); }
-                            if ($scope.labelstyle) { t.attr('style', $scope.labelstyle); }
+                            if (trackScale.labelclass) { t.attr('class', trackScale.labelclass); }
+                            if (trackScale.labelstyle) { t.attr('style', trackScale.labelstyle); }
                             t.attr("x", labels[i].x);
                             t.attr("y", labels[i].y);
                             t.css("text-anchor", "middle");
@@ -271,28 +305,61 @@
                             groupElement.append(t);
                         }
                     };
-
-                    Object.defineProperty($scope, "labelradius", {
+                    Object.defineProperty(trackScale, "radius", {
                         get: function () {
-                            return Number($scope.radius) + Number(($scope.labeloffset || DEFAULT_LABELOFFSET) * ($scope.directionflg ? -1 : 1));
+                            return (trackScale.inwardflg ? track.radius : track.radius + track.width) +  ((trackScale.inwardflg ? -1 : 1) * trackScale.vadjust) + (trackScale.inwardflg ? -(trackScale.ticksize) : 0);
                         }
                     });
-                    Object.defineProperty($scope, "radius", {
+                    Object.defineProperty(trackScale, "interval", {
                         get: function () {
-                            return ($scope.directionflg ? trackController.track.radius : trackController.track.radius + trackController.track.thickness) +  (($scope.directionflg ? -1 : 1) * Number($scope.offset || 0)) + ($scope.directionflg ? -($scope.ticklength || DEFAULT_TICKLENGTH) : 0);
+                            return SVGUtil.util.Numeric($scope.interval);
                         }
                     });
-                    Object.defineProperty($scope, "directionflg", {
+                    Object.defineProperty(trackScale, "vadjust", {
                         get: function () {
-                            return $scope.direction === 'in';
+                            return SVGUtil.util.Numeric($scope.vadjust);
                         }
                     });
-                    Object.defineProperty($scope, "total", {
+                    Object.defineProperty(trackScale, "ticksize", {
                         get: function () {
-                            return trackController.plasmid.sequencelength;
+                            return SVGUtil.util.Numeric($scope.ticksize, DEFAULT_TICKSIZE);
                         }
                     });
-                    this.scale = $scope;
+                    Object.defineProperty(trackScale, "inwardflg", {
+                        get: function () {
+                            return $scope.direction === 'in' ? true : false;
+                        }
+                    });
+                    Object.defineProperty(trackScale, "total", {
+                        get: function () {
+                            return track.plasmid.sequencelength;
+                        }
+                    });
+                    Object.defineProperty(trackScale, "showlabels", {
+                        get: function () {
+                            return $scope.showlabels === "1" ? true : false;
+                        }
+                    });
+                    Object.defineProperty(trackScale, "labelvadjust", {
+                        get: function () {
+                            return SVGUtil.util.Numeric($scope.labelvadjust, DEFAULT_LABELVADJUST);
+                        }
+                    });
+                    Object.defineProperty(trackScale, "labelclass", {
+                        get: function () {
+                            return $scope.labelclass;
+                        }
+                    });
+                    Object.defineProperty(trackScale, "labelstyle", {
+                        get: function () {
+                            return $scope.labelstyle;
+                        }
+                    });
+                    Object.defineProperty(trackScale, "labelradius", {
+                        get: function () {
+                            return trackScale.radius + (trackScale.labelvadjust * (trackScale.inwardflg ? -1 : 1));
+                        }
+                    });
                 }]
             };
         }])
@@ -306,10 +373,10 @@
                 transclude: true,
                 require: ['trackmarker', '^plasmidtrack'],
                 scope: {
-                    start: "=",
-                    end: "=",
-                    offsetradius: "=",
-                    offsetthickness: "=",
+                    start: "@",
+                    end: "@",
+                    vadjust: "@",
+                    wadjust: "@",
                     markergroup: "@",
                     arrowstartlength : "@",
                     arrowstartwidth : "@",
@@ -347,65 +414,71 @@
                         });
 
                         // Watch for changes to marker
-                        scope.$watchGroup(['start', 'end', 'offsetradius', 'offsetthickness'], function () {markerController.draw(); });
+                        scope.$watchGroup(['start', 'end', 'vadjust', 'wadjust'], function () {markerController.draw(); });
 
                     }
                 },
                 controller : ['$scope', function ($scope) {
-                    var trackController, element, markerlabelControllers = [];
+                    var track, marker, element, markerLabels = [];
 
-                    this.init = function (elem, trackCtrl) {
-                        trackCtrl.addMarker(this);
-                        trackController = trackCtrl;
+                    marker = this;
+
+                    marker.init = function (elem, trackCtrl) {
+                        track = trackCtrl;
+                        track.addMarker(this);
                         element = elem;
+                        marker.track = track;
                     };
 
-                    this.draw = function () {
-                        element.attr("d", $scope.getPath());
-                        angular.forEach(markerlabelControllers, function (ml) {
-                            ml.draw();
+                    marker.draw = function () {
+                        element.attr("d", marker.getPath());
+                        angular.forEach(markerLabels, function (markerLabel) {
+                            markerLabel.draw();
                         });
                     };
 
-                    this.addMarkerLabel = function (markerlabelController) {
-                        markerlabelControllers.push(markerlabelController);
+                    marker.addMarkerLabel = function (markerLabel) {
+                        markerLabels.push(markerLabel);
                     };
 
-                    $scope.getPath = function () {
-                        var center = trackController.track.center;
-                        return SVGUtil.svg.path.arc(center.x, center.y, $scope.radius, $scope.startangle, $scope.endangle, $scope.thickness, $scope.arrowstart, $scope.arrowend);
+                    marker.getPath = function () {
+                        var center = track.center, angle = marker.angle, radius = marker.radius;
+                        return SVGUtil.svg.path.arc(center.x, center.y, radius.inner, angle.start, angle.end, marker.width, marker.arrowstart, marker.arrowend);
                     };
-                    $scope.getPosition = function (hAdjust, vAdjust, hAlign, vAlign) {
-                        var HALIGN_MIDDLE = 0, HALIGN_BEGIN = 1, HALIGN_END = 2,
-                            VALIGN_CENTER = 0, VALIGN_INNER = 1, VALIGN_OUTER = 2,
-                            center = trackController.track.center,
-                            radius, angle;
 
-                        hAdjust = Number(hAdjust || 0);
-                        vAdjust = Number(vAdjust || 0);
+                    marker.getPosition = function (hAdjust, vAdjust, hAlign, vAlign) {
+                        var HALIGN_MIDDLE = "middle", HALIGN_START = "start", HALIGN_END = "end",
+                            VALIGN_MIDDLE = "middle", VALIGN_INNER = "inner", VALIGN_OUTER = "outer",
+                            center, radius, angle, markerRadius, markerAngle;
+
+                        center = track.center;
+                        markerRadius = marker.radius;
+                        markerAngle = marker.angle;
+                        hAdjust = SVGUtil.util.Numeric(hAdjust);
+                        vAdjust = SVGUtil.util.Numeric(vAdjust);
 
                         if (vAlign !== undefined && hAlign !== undefined) {
                             switch (vAlign) {
                             case VALIGN_INNER:
-                                radius =  $scope.radiusinner + vAdjust;
+                                radius =  markerRadius.inner + vAdjust;
                                 break;
                             case VALIGN_OUTER:
-                                radius =  $scope.radiusouter + vAdjust;
+                                radius =  markerRadius.outer + vAdjust;
                                 break;
                             default:
-                                radius =  $scope.radiuscenter + vAdjust;
+                                radius =  markerRadius.middle + vAdjust;
                                 break;
                             }
 
                             switch (hAlign) {
-                            case HALIGN_BEGIN:
-                                angle =  $scope.startangle + hAdjust;
+                            case HALIGN_START:
+                                angle = markerAngle.start + hAdjust;
                                 break;
                             case HALIGN_END:
-                                angle =  $scope.endangle + hAdjust;
+                                angle = markerAngle.end + hAdjust;
                                 break;
                             default:
-                                angle =  $scope.midangle + hAdjust;
+                                angle = markerAngle.middle + hAdjust;
                                 break;
                             }
 
@@ -413,15 +486,15 @@
                         } else {
 
                             radius = {
-                                outer :  $scope.radiusouter + vAdjust,
-                                inner : $scope.radiusinner + vAdjust,
-                                center : $scope.radiuscenter + vAdjust
+                                outer : markerRadius.outer + vAdjust,
+                                inner : markerRadius.inner + vAdjust,
+                                middle : markerRadius.middle + vAdjust
                             };
 
                             angle = {
-                                begin : $scope.startangle + hAdjust,
-                                end : $scope.endangle + hAdjust,
-                                middle : $scope.midangle + hAdjust
+                                begin : markerAngle.start + hAdjust,
+                                end : markerAngle.end + hAdjust,
+                                middle : markerAngle.middle + hAdjust
                             };
 
 
@@ -431,10 +504,10 @@
                                     middle: SVGUtil.util.polarToCartesian(center.x, center.y, radius.outer, angle.middle),
                                     end: SVGUtil.util.polarToCartesian(center.x, center.y, radius.outer, angle.end)
                                 },
-                                center : {
-                                    begin: SVGUtil.util.polarToCartesian(center.x, center.y, radius.center, angle.begin),
-                                    middle: SVGUtil.util.polarToCartesian(center.x, center.y, radius.center, angle.middle),
-                                    end: SVGUtil.util.polarToCartesian(center.x, center.y, radius.center, angle.end)
+                                middle : {
+                                    begin: SVGUtil.util.polarToCartesian(center.x, center.y, radius.middle, angle.begin),
+                                    middle: SVGUtil.util.polarToCartesian(center.x, center.y, radius.middle, angle.middle),
+                                    end: SVGUtil.util.polarToCartesian(center.x, center.y, radius.middle, angle.end)
                                 },
                                 inner : {
                                     begin: SVGUtil.util.polarToCartesian(center.x, center.y, radius.inner, angle.begin),
@@ -445,73 +518,90 @@
                         }
 
                     };
-                    Object.defineProperty($scope, "center", {
+                    Object.defineProperty(marker, "center", {
                         get: function () {
-                            return trackController.track.center;
+                            return track.center;
                         }
                     });
-                    Object.defineProperty($scope, "radius", {
-                        get: function () {
-                            return trackController.track.radius + Number($scope.offsetradius || 0);
-                        }
-                    });
-                    Object.defineProperty($scope, "radiusinner", {
-                        get: function () {
-                            return $scope.radius;
-                        }
-                    });
-                    Object.defineProperty($scope, "radiusouter", {
-                        get: function () {
-                            return $scope.radius + $scope.thickness;
-                        }
-                    });
-                    Object.defineProperty($scope, "radiuscenter", {
-                        get: function () {
-                            return $scope.radius + $scope.thickness / 2;
-                        }
-                    });
-                    Object.defineProperty($scope, "thickness", {
-                        get: function () {
-                            return trackController.track.thickness + Number($scope.offsetthickness || 0);
-                        }
-                    });
-                    Object.defineProperty($scope, "startangle", {
-                        get: function () {
-                            return (Number($scope.start || 0) / Number(trackController.plasmid.sequencelength)) * 360;
-                        }
-                    });
-                    Object.defineProperty($scope, "endangle", {
-                        get: function () {
-                            var endAngle = (Number($scope.end || $scope.start) / Number(trackController.plasmid.sequencelength)) * 360;
-                            endAngle += (endAngle < $scope.startangle) ? 360 : 0;
-                            return endAngle;
-                        }
-                    });
-                    Object.defineProperty($scope, "midangle", {
-                        get: function () {
-                            return $scope.startangle + ($scope.endangle - $scope.startangle) / 2;
-                        }
-                    });
-                    Object.defineProperty($scope, "arrowstart", {
+                    Object.defineProperty(marker, "radius", {
                         get: function () {
                             return {
-                                width : Number($scope.arrowstartwidth || 0),
-                                length : Number($scope.arrowstartlength || 0),
-                                angle : Number($scope.arrowstartangle || 0)
+                                inner : track.radius + marker.vadjust,
+                                outer : track.radius + marker.vadjust + marker.width,
+                                middle : track.radius + marker.vadjust + marker.width / 2
                             };
                         }
                     });
-                    Object.defineProperty($scope, "arrowend", {
+                    Object.defineProperty(marker, "angle", {
+                        get: function () {
+                            var startAngle, endAngle, midAngle, end;
+
+                            startAngle = (marker.start / track.plasmid.sequencelength) * 360;
+
+                            end = $scope.end || $scope.start;
+                            endAngle = (SVGUtil.util.Numeric(end) / track.plasmid.sequencelength) * 360;
+                            endAngle += (endAngle < startAngle) ? 360 : 0;
+
+                            midAngle = startAngle + ((endAngle - startAngle) / 2);
+
+                            return {
+                                start : startAngle,
+                                middle : midAngle,
+                                end : endAngle
+                            };
+                        }
+                    });
+                    Object.defineProperty(marker, "vadjust", {
+                        get: function () {
+                            return SVGUtil.util.Numeric($scope.vadjust);
+                        }
+                    });
+                    Object.defineProperty(marker, "wadjust", {
+                        get: function () {
+                            return SVGUtil.util.Numeric($scope.wadjust);
+                        }
+                    });
+                    Object.defineProperty(marker, "width", {
+                        get: function () {
+                            return track.width + marker.wadjust;
+                        }
+                    });
+                    Object.defineProperty(marker, "start", {
+                        get: function () {
+                            return SVGUtil.util.Numeric($scope.start);
+                        }
+                    });
+                    Object.defineProperty(marker, "end", {
+                        get: function () {
+                            return SVGUtil.util.Numeric($scope.end);
+                        }
+                    });
+                    Object.defineProperty(marker, "arrowstart", {
                         get: function () {
                             return {
-                                width : Number($scope.arrowendwidth || 0),
-                                length : Number($scope.arrowendlength || 0),
-                                angle : Number($scope.arrowendangle || 0)
+                                width : SVGUtil.util.Numeric($scope.arrowstartwidth),
+                                length : SVGUtil.util.Numeric($scope.arrowstartlength),
+                                angle : SVGUtil.util.Numeric($scope.arrowstartangle)
                             };
+                        }
+                    });
+                    Object.defineProperty(marker, "arrowend", {
+                        get: function () {
+                            return {
+                                width : SVGUtil.util.Numeric($scope.arrowendwidth),
+                                length : SVGUtil.util.Numeric($scope.arrowendlength),
+                                angle : SVGUtil.util.Numeric($scope.arrowendangle)
+                            };
+                        }
+                    });
+                    Object.defineProperty(marker, "markergroup", {
+                        get: function () {
+                            return $scope.markergroup;
                         }
                     });
 
-                    this.marker = $scope;
+                    marker.labels = markerLabels;
+
                 }]
             };
         }])
@@ -537,7 +627,7 @@
                     showline : "@",
                     linestyle : "@",
                     lineclass : "@",
-                    lineoffset : "@"
+                    linevadjust : "@"
                 },
                 link: {
                     pre : function (scope, elem, attr, controllers, transcludeFn) {
@@ -568,40 +658,38 @@
                     }
                 },
                 controller : ['$scope', function ($scope) {
-                    var markerController, textElement, pathElement, lineElement, groupElement;
+                    var marker, markerLabel, textElement, pathElement, lineElement, groupElement;
 
-                    this.init = function (textElem, groupElem, pathElem, lineElem, markerCtrl) {
-                        markerCtrl.addMarkerLabel(this);
-                        markerController = markerCtrl;
+                    markerLabel = this;
+
+                    markerLabel.init = function (textElem, groupElem, pathElem, lineElem, markerCtrl) {
+                        marker = markerCtrl;
+                        marker.addMarkerLabel(markerLabel);
+                        markerLabel.marker = marker;
                         textElement = textElem;
                         pathElement = pathElem;
                         lineElement = lineElem;
                         groupElement = groupElem;
                     };
 
-                    this.draw = function () {
-                        var VALIGN_CENTER = 'center', VALIGN_INNER = 'inner', VALIGN_OUTER = 'outer',
-                            HALIGN_CENTER = 'center', HALIGN_LEFT = 'left', HALIGN_RIGHT = 'right',
-                            halign = $scope.halign || 0,
-                            valign = $scope.valign || 0,
-                            marker = markerController.marker,
-                            textPathElem, fontSize, fontAdjust,
-                            id, pos,
-                            markerAngle, src, dst, dstPos;
+                    markerLabel.draw = function () {
+                        var VALIGN_MIDDLE = "middle", VALIGN_INNER = "inner", VALIGN_OUTER = "outer",
+                            HALIGN_MIDDLE = "middle", HALIGN_START = "start", HALIGN_END = "end",
+                            textPathElem, fontSize, fontAdjust, id, pos, markerAngle, src, dst, dstPos, dstV;
 
-                        if ($scope.type === 'path') {
+                        if (markerLabel.type === 'path') {
                             textPathElem = angular.element(textElement.children()[0]);
                             fontSize = window.getComputedStyle(textElement[0]).fontSize.replace("px", "");
-                            fontAdjust = ($scope.valign === VALIGN_OUTER) ? 0 : ($scope.valign === VALIGN_INNER) ? Number(fontSize || 0) : Number(fontSize || 0) / 2;
+                            fontAdjust = (markerLabel.valign === VALIGN_OUTER) ? 0 : (markerLabel.valign === VALIGN_INNER) ? Number(fontSize || 0) : Number(fontSize || 0) / 2;
 
-                            pathElement.attr("d", $scope.getPath($scope.hadjust, Number($scope.vadjust || 0) - fontAdjust, $scope.halign, $scope.valign));
+                            pathElement.attr("d", markerLabel.getPath(markerLabel.hadjust, markerLabel.vadjust - fontAdjust, markerLabel.halign, markerLabel.valign));
 
-                            switch ($scope.halign) {
-                            case HALIGN_LEFT:
+                            switch (markerLabel.halign) {
+                            case HALIGN_START:
                                 textElement.attr("text-anchor", "start");
                                 textPathElem[0].setAttribute("startOffset", "0%"); //jQuery can't handle case sensitive names
                                 break;
-                            case HALIGN_RIGHT:
+                            case HALIGN_END:
                                 textElement.attr("text-anchor", "end");
                                 textPathElem[0].setAttribute("startOffset", "100%");//jQuery can't handle case sensitive names
                                 break;
@@ -614,69 +702,113 @@
                             pathElement.attr("id", id);
                             textPathElem.attr("xlink:href", '#' + id);
                         } else {
-                            pos = marker.getPosition($scope.hadjust, $scope.vadjust, halign, valign);
+                            pos = marker.getPosition(markerLabel.hadjust, markerLabel.vadjust, markerLabel.halign, markerLabel.valign);
                             textElement.attr("x", pos.x);
                             textElement.attr("y", pos.y);
                         }
 
-                        if ($scope.showlineflg) {
+                        if (markerLabel.showlineflg) {
 
-                            markerAngle = marker.startangle;
-                            src = marker.getPosition($scope.hadjust, Number($scope.vadjust || 0) + Number($scope.lineoffset || 0), halign, valign);
+                            src = marker.getPosition(markerLabel.hadjust, markerLabel.vadjust + markerLabel.linevadjust, markerLabel.halign, markerLabel.valign);
 
                             dstPos = marker.getPosition();
-                            dst = $scope.valign === VALIGN_INNER ? dstPos.inner.middle : dstPos.outer.middle;
-
+                            dstV = markerLabel.valign === VALIGN_INNER ? dstPos.inner : markerLabel.valign === VALIGN_MIDDLE ? dstPos.middle : dstPos.outer;
+                            dst = markerLabel.halign === HALIGN_START ? dstV.begin : markerLabel.halign === HALIGN_END ? dstV.end : dstV.middle;
 
                             lineElement.attr("d", ["M", src.x, src.y, "L", dst.x, dst.y].join(" "));
-                            if (!$scope.linestyle && !$scope.lineclass) { lineElement.attr("style", "stroke:#000"); }
-                            if ($scope.linestyle) { lineElement.attr("style", $scope.linestyle); }
-                            if ($scope.lineclass) { lineElement.attr("class", $scope.lineclass); }
+                            if (!markerLabel.linestyle && !markerLabel.lineclass) { lineElement.attr("style", "stroke:#000"); }
+                            if (markerLabel.linestyle) { lineElement.attr("style", markerLabel.linestyle); }
+                            if (markerLabel.lineclass) { lineElement.attr("class", markerLabel.lineclass); }
                         }
                     };
-                    Object.defineProperty($scope, "showlineflg", {
-                        get: function () {
-                            return ($scope.showline ? true : false);
-                        }
-                    });
-                    $scope.getPath = function (hAdjust, vAdjust, hAlign, vAlign) {
-                        var VALIGN_CENTER = "center", VALIGN_INNER = "inner", VALIGN_OUTER = "outer",
-                            HALIGN_CENTER = 'center', HALIGN_LEFT = 'left', HALIGN_RIGHT = 'right',
-                            marker = markerController.marker,
-                            center = marker.center,
-                            radius, startAngle, endAngle;
 
+                    markerLabel.getPath = function (hAdjust, vAdjust, hAlign, vAlign) {
+                        var VALIGN_MIDDLE = "middle", VALIGN_INNER = "inner", VALIGN_OUTER = "outer",
+                            HALIGN_MIDDLE = "middle", HALIGN_START = "start", HALIGN_END = "end",
+                            center = marker.center,
+                            radius, markerRadius, markerAngle, startAngle, endAngle;
+
+                        markerRadius = marker.radius;
                         switch (vAlign) {
                         case VALIGN_INNER:
-                            radius = marker.radiusinner;
+                            radius = markerRadius.inner;
                             break;
                         case VALIGN_OUTER:
-                            radius = marker.radiusouter;
+                            radius = markerRadius.outer;
                             break;
                         default:
-                            radius = marker.radiuscenter;
+                            radius = markerRadius.middle;
                             break;
                         }
 
+                        markerAngle = marker.angle;
                         switch (hAlign) {
-                        case HALIGN_LEFT:
-                            startAngle = marker.startangle;
-                            endAngle = marker.startangle + 359.99;
+                        case HALIGN_START:
+                            startAngle = markerAngle.start;
+                            endAngle = markerAngle.start + 359.99;
                             break;
-                        case HALIGN_RIGHT:
-                            startAngle = marker.endangle + 1;
-                            endAngle = marker.endangle;
+                        case HALIGN_END:
+                            startAngle = markerAngle.end + 1;
+                            endAngle = markerAngle.end;
                             break;
                         default:
-                            startAngle = marker.midangle + 180.05;
-                            endAngle = marker.midangle + 179.95;
+                            startAngle = markerAngle.middle + 180.05;
+                            endAngle = markerAngle.middle + 179.95;
                             break;
                         }
 
                         return SVGUtil.svg.path.arc(center.x, center.y, radius + Number(vAdjust || 0), startAngle + Number(hAdjust || 0), endAngle + Number(hAdjust || 0), 1);
                     };
-
-                    this.markerlabel = $scope;
+                    Object.defineProperty(markerLabel, "showlineflg", {
+                        get: function () {
+                            return ($scope.showline === "1" ? true : false);
+                        }
+                    });
+                    Object.defineProperty(markerLabel, "halign", {
+                        get: function () {
+                            return $scope.halign || "middle";
+                        }
+                    });
+                    Object.defineProperty(markerLabel, "valign", {
+                        get: function () {
+                            return $scope.valign || "middle";
+                        }
+                    });
+                    Object.defineProperty(markerLabel, "hadjust", {
+                        get: function () {
+                            return SVGUtil.util.Numeric($scope.hadjust);
+                        }
+                    });
+                    Object.defineProperty(markerLabel, "vadjust", {
+                        get: function () {
+                            return SVGUtil.util.Numeric($scope.vadjust);
+                        }
+                    });
+                    Object.defineProperty(markerLabel, "type", {
+                        get: function () {
+                            return $scope.type;
+                        }
+                    });
+                    Object.defineProperty(markerLabel, "linevadjust", {
+                        get: function () {
+                            return SVGUtil.util.Numeric($scope.linevadjust);
+                        }
+                    });
+                    Object.defineProperty(markerLabel, "linestyle", {
+                        get: function () {
+                            return $scope.linestyle;
+                        }
+                    });
+                    Object.defineProperty(markerLabel, "lineclass", {
+                        get: function () {
+                            return $scope.lineclass;
+                        }
+                    });
+                    Object.defineProperty(markerLabel, "text", {
+                        get: function () {
+                            return $scope.text;
+                        }
+                    });
                 }]
             };
         }])

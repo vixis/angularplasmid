@@ -49,14 +49,15 @@
             }
 
             function swapProperties(elemFrom, elemTo) {
-                var PROPLIST = ['id', 'name', 'class', 'style', 'filter'],
-                    property,
-                    i;
+                var property, fromProp, i,
+                    PROPLIST = ['id', 'name', 'class', 'style', 'filter'];
 
                 for (i = 0; i < PROPLIST.length; i += 1) {
                     property = PROPLIST[i];
-                    elemTo.attr(property, elemFrom.attr(property));
-                    elemFrom.removeAttr(property);
+                    if (elemFrom[0].hasAttribute(property)) {
+                        elemTo.attr(property, elemFrom.attr(property));
+                        elemFrom.removeAttr(property);
+                    }
                 }
             }
 
@@ -218,6 +219,10 @@
 
             }
 
+            function Numeric(numberVal, numberDefault) {
+                return isNaN(numberVal) ? numberDefault || 0 : Number(numberVal);
+            }
+
             return {
                 api : {
                     addPlasmid : addPlasmid,
@@ -227,7 +232,8 @@
                 },
                 util : {
                     polarToCartesian : polarToCartesian,
-                    swapProperties : swapProperties
+                    swapProperties : swapProperties,
+                    Numeric : Numeric
                 },
                 svg : {
                     createNode : createNode,

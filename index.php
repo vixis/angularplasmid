@@ -17,7 +17,7 @@
 			.track {
 				fill:#f0f0f0;
 				stroke:#999;
-				filter:url(#dropshadow);
+
 			}
 			.outertrack {
 				fill:none;
@@ -56,28 +56,26 @@
 		</style>
 	</head>
 	<body>
-		<plasmid class="plasmid" plasmidheight="600" plasmidwidth="600" sequencelength="1000">
-			<plasmidtrack class="track" radius="150" thickness="30">
-				<trackscale class="scale-minor" interval="10" direction="in"></trackscale>
+        Size : <input ng-model="size" spinner ng-init="size=600">
+        Radius : <input ng-model="radius" spinner ng-init="radius=150">
+        Width : <input ng-model="width" spinner ng-init="width=30">
+        TickVadjust : <input ng-model="vadjust" spinner ng-init="vadjust=10">
+        LabelVAdjust : <input ng-model="labelvadjust" spinner ng-init="labelvadjust=15">
+        <br>
+		<plasmid class="plasmid" plasmidheight="{{size}}" plasmidwidth="{{size}}" sequencelength="1000">
+			<plasmidtrack class="track" radius="{{radius}}" width="{{width}}">
+
+                <trackscale class="scale-minor" interval="10" direction="in"></trackscale>
 				<trackscale class="scale-major" interval="50" direction="in" showlabels="1" labelclass="scale-label"></trackscale>
-				<trackscale class="scale-minor" interval="10"></trackscale>
-				<trackscale class="scale-major" interval="50" labelclass="scale-label"></trackscale>
-				<trackmarker class="trackmarker" start="350" end="400" arrowendlength="4" offsetthickness="6" offsetradius="-3"><markerlabel text="AcoII" type="path"></markerlabel></trackmarker>
-				<trackmarker class="trackmarker" start="450" end="625" arrowendlength="4" offsetthickness="6" offsetradius="-3"><markerlabel text="NolI" type="path"></markerlabel></trackmarker>
-				<trackmarker class="enzyme" start="712"><markerlabel text="NolI" vadjust="50" hadjust="2" showline="1" lineoffset="-20" lineclass="label-line"></markerlabel></trackmarker>
-				<trackmarker class="enzyme" start="740"><markerlabel text="ACII" vadjust="50" hadjust="2" showline="1" lineoffset="-20" lineclass="label-line"></markerlabel></trackmarker>
-				<trackmarker class="enzyme" start="822"><markerlabel text="BacIII" vadjust="50" hadjust="2" showline="1" lineoffset="-20" lineclass="label-line"></markerlabel></trackmarker>
-				<trackmarker class="transsite" start="850" end="100" offsetthickness="30"><markerlabel text="Transcription Region" type="path" valign="outer" vadjust="10"></markerlabel></trackmarker>
-			</plasmidtrack>
-			<plasmidtrack class="outertrack" radius="190" thickness="10">
-				<trackmarker style='fill:#0c0' start="65" end="200" arrowendlength="4" arrowendwidth="4">
-					<markerlabel text="Forward" vadjust="40" halign="left"></markerlabel>
-					<markerlabel text="Primer" vadjust="40" hadjust="3"></markerlabel>
-				</trackmarker>
-				<trackmarker style='fill:#c00' start="201" end="300" arrowstartlength="4" arrowstartwidth="4" >
-					<markerlabel text="Reverse" vadjust="40" halign="left"></markerlabel>
-					<markerlabel text="Primer" vadjust="40" hadjust="3"></markerlabel>
-				</trackmarker>
+                <trackscale class="scale-major" interval="50" vadjust="{{vadjust}}" labelvadjust="{{labelvadjust}}" labelclass="scale-label" showlabels="1"></trackscale>
+                <trackscale class="scale-minor" interval="10"></trackscale>
+				<trackmarker class="trackmarker" start="50" end="100" arrowendlength="4"><markerlabel text="AcoII" type="path"></markerlabel></trackmarker>
+				<trackmarker class="trackmarker" start="450" end="625" arrowendlength="4" wadjust="6" vadjust="-3"><markerlabel text="NolI" type="path"></markerlabel></trackmarker>
+				<trackmarker class="trackmarker" start="650" end="712"><markerlabel text="NolI" halign="end" valign="outer" vadjust="50" showline="1" linevadjust="-20" lineclass="label-line"></markerlabel></trackmarker>
+				<trackmarker class="enzyme" start="740"><markerlabel text="ACII" vadjust="50" hadjust="2" valign="outer" showline="1" linevadjust="-20" lineclass="label-line"></markerlabel></trackmarker>
+				<trackmarker class="enzyme" start="822"><markerlabel text="BacIII" vadjust="50" hadjust="2" valign="outer" showline="1" linevadjust="-20" lineclass="label-line"></markerlabel></trackmarker>
+                <trackmarker class="transsite" start="850" end="100" wadjust="30"><markerlabel text="Transcription Region" type="path" valign="outer" vadjust="10"></markerlabel></trackmarker>
+
 			</plasmidtrack>
 		</plasmid>
 

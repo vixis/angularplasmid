@@ -1,13 +1,10 @@
 <!doctype html>
-<html ng-app='app'>
+<html>
 	<head>
 		<link rel="stylesheet" href="css/fonts/stylesheet.css" type="text/css" charset="utf-8" />
 		<link href='http://fonts.googleapis.com/css?family=Roboto:400' rel='stylesheet' type='text/css'>
 		<link rel="stylesheet" href="css/bootstrap.min.css">
-		<script type="text/javascript" src="bower_components/angular/angular.js"></script>
-        <script type="text/javascript" src="js/services.js"></script>
-		<script type="text/javascript" src="js/directives.js"></script>
-		<script type="text/javascript" src="js/app.js"></script>
+		<script type="text/javascript" src="dist/angularplasmid.complete.min.js"></script>
 		<style>
 		<!--
 			.plasmid {

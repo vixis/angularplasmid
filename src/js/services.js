@@ -1,10 +1,10 @@
 /*global angular*/
 (function () {
-    
+
     'use strict';
-    
+
     angular.module("angularplasmid.services", [])
-    
+
          .factory("SVGUtil", function () {
             /*
                 PUBLIC API
@@ -87,12 +87,12 @@
 
             function pathDonut(x, y, radius, width) {
                 var innerRing, outerRing, path;
-                
+
                 x = Number(x || 0);
                 y = Number(y || 0);
                 radius = Number(radius || 0);
                 width = Number(width || 0);
-                
+
                 innerRing = {
                     start : polarToCartesian(x, y, radius, 359.99),
                     end : polarToCartesian(x, y, radius, 0)

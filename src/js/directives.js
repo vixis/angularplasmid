@@ -1,9 +1,9 @@
 /*global angular*/
 (function () {
     'use strict';
-    
+
     angular.module("angularplasmid", ["angularplasmid.services"])
-   
+
         .directive("plasmidapi", ['SVGUtil', function (SVGUtil) {
             return {
                 restrict: "AE",
@@ -48,7 +48,7 @@
                     plasmid = this;
 
                     plasmid.init = function (elem) {
-                        SVGUtil.api.addPlasmid(this);
+                        SVGUtil.api.addPlasmid(plasmid);
                         element = elem;
                     };
 
@@ -409,7 +409,7 @@
                         path.on("click", function (e) {
                             scope.markerclick({
                                 $e: e,
-                                $marker: markerController.marker
+                                $marker: markerController
                             });
                         });
 
@@ -834,6 +834,6 @@
                 }
             };
         });
-    
+
 }());
 

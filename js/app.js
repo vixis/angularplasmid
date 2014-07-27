@@ -2,7 +2,7 @@
 (function () {
     'use strict';
 
-    var app = angular.module("app", ["angularplasmid"]);
+    var app = angular.module("app");
 
     app.controller('MainCtrl', ['$timeout', '$scope', function ($timeout, $scope) {
 

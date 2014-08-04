@@ -4,7 +4,12 @@
 		<link rel="stylesheet" href="css/fonts/stylesheet.css" type="text/css" charset="utf-8" />
 		<link href='http://fonts.googleapis.com/css?family=Roboto:400' rel='stylesheet' type='text/css'>
 		<link rel="stylesheet" href="css/bootstrap.min.css">
-		<script type="text/javascript" src="dist/angularplasmid.complete.min.js"></script>
+        <script type="text/javascript" src="bower_components/angular/angular.js"></script>
+		<!--<script type="text/javascript" src="dist/angularplasmid.complete.min.js"></script>-->
+        <script type="text/javascript" src="src/js/declare.js"></script>
+        <script type="text/javascript" src="src/js/services.js"></script>
+		<script type="text/javascript" src="src/js/directives.js"></script>
+        <script type="text/javascript" src="src/js/init.js"></script>
 		<style>
 		<!--
 			.plasmid {
@@ -61,7 +66,8 @@
         <br>
 		<plasmid class="plasmid" plasmidheight="{{size}}" plasmidwidth="{{size}}" sequencelength="1000">
 			<plasmidtrack class="track" radius="{{radius}}" width="{{width}}">
-
+                <tracklabel style="stroke:#666;fill:#ccc;font-size:40px;weight:700" text="Test"></tracklabel>
+                <tracklabel style="fill:#c00;font-size:20px;weight:400" text="Another" vadjust="30" hadjust="-20"></tracklabel>
                 <trackscale class="scale-minor" interval="10" direction="in"></trackscale>
 				<trackscale class="scale-major" interval="50" direction="in" showlabels="1" labelclass="scale-label"></trackscale>
                 <trackscale class="scale-major" interval="50" vadjust="{{vadjust}}" labelvadjust="{{labelvadjust}}" labelclass="scale-label" showlabels="1"></trackscale>

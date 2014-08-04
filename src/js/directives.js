@@ -50,6 +50,7 @@
                     plasmid.init = function (elem) {
                         SVGUtil.api.addPlasmid(plasmid);
                         element = elem;
+                        plasmid.id = element.attr("id");
                     };
 
                     plasmid.draw = function () {
@@ -77,14 +78,14 @@
                     Object.defineProperty(plasmid, "dimensions", {
                         get: function () {
                             return {
-                                height : SVGUtil.util.Numeric($scope.plasmidheight),
-                                width : SVGUtil.util.Numeric($scope.plasmidwidth)
+                                height : SVGUtil.util.Numeric($scope.plasmidheight, 300),
+                                width : SVGUtil.util.Numeric($scope.plasmidwidth, 300)
                             };
                         }
                     });
                     Object.defineProperty(plasmid, "sequencelength", {
                         get: function () {
-                            return SVGUtil.util.Numeric($scope.sequencelength);
+                            return (plasmid.sequence ? plasmid.sequence.length : SVGUtil.util.Numeric($scope.sequencelength));
                         }
                     });
                     Object.defineProperty(plasmid, "sequence", {
@@ -204,7 +205,7 @@
                     });
                     Object.defineProperty(plasmidTrack, "radius", {
                         get: function () {
-                            return SVGUtil.util.Numeric($scope.radius);
+                            return SVGUtil.util.Numeric($scope.radius, 100);
                         }
                     });
                     Object.defineProperty(plasmidTrack, "width", {
@@ -363,8 +364,89 @@
                 }]
             };
         }])
+    
+        .directive("tracklabel", ['SVGUtil', function (SVGUtil) {
+            return {
+                restrict: 'AE',
+                type : 'svg',
+                template: '<text></text>',
+                replace : true,
+                transclude: true,
+                require: ['tracklabel', '^plasmidtrack'],
+                scope: {
+                    text: "@",
+                    hadjust : "@",
+                    vadjust : "@"
+                },
+                link : {
+                    pre : function (scope, elem, attr, controllers, transcludeFn) {
+                        var labelController = controllers[0], trackController = controllers[1], textElem = angular.element(elem[0]);
+                        labelController.init(textElem, trackController);
+                    },
+                    post : function (scope, elem, attr, controllers, transcludeFn) {
 
-         .directive("trackmarker", ['SVGUtil', function (SVGUtil) {
+                        var labelController;
+
+                        //Manually transclude children elements
+                        transcludeFn(scope.$parent, function (content) {
+                            elem.append(content);
+                        });
+
+                        // Watch for changes to label
+                        labelController = controllers[0];
+                        scope.$watchGroup(['text','vadjust','hadjust'], function () {labelController.draw(); });
+                    }
+                },
+                controller : ['$scope', function ($scope) {
+                    var track, trackLabel, element;
+                    
+                    trackLabel = this;
+
+                    trackLabel.init = function (elem, trackCtrl) {
+                        track = trackCtrl;
+                        trackLabel.track = track;
+                        element = elem;
+                    };
+
+                    trackLabel.draw = function () {
+                        var center = track.center, startX, startY;
+                        element.attr("x", center.x + trackLabel.hadjust);
+                        element.attr("y", center.y + trackLabel.vadjust);
+                        element.css("text-anchor", "middle");
+                        element.css("alignment-baseline", "middle");
+                        element.text(trackLabel.text);
+                    };
+
+                    Object.defineProperty(trackLabel, "center", {
+                        get: function () {
+                            return track.center;
+                        }
+                    });
+                    Object.defineProperty(trackLabel, "text", {
+                        get: function () {
+                            return $scope.text;
+                        }
+                    });
+                    Object.defineProperty(trackLabel, "hadjust", {
+                        get: function () {
+                            return SVGUtil.util.Numeric($scope.hadjust,0);
+                        }
+                    });
+                    Object.defineProperty(trackLabel, "vadjust", {
+                        get: function () {
+                            return SVGUtil.util.Numeric($scope.vadjust,0);
+                        }
+                    });
+                    Object.defineProperty(trackLabel, "dimensions", {
+                        get: function () {
+                            return element[0].getBBox();
+                        }
+                    });
+                }]
+            };
+        }])
+
+        .directive("trackmarker", ['SVGUtil', function (SVGUtil) {
             return {
                 restrict: 'AE',
                 type : 'svg',
@@ -597,6 +679,18 @@
                     Object.defineProperty(marker, "markergroup", {
                         get: function () {
                             return $scope.markergroup;
+                        }
+                    });
+                    Object.defineProperty(marker, "sequence", {
+                        get: function () {
+                            var plasmidSeq = marker.track.plasmid.sequence,
+                                markerSeq = '';
+                            
+                            if (marker.start > marker.end) {
+                                return plasmidSeq.substring(marker.start - 1, plasmidSeq.length - 1) + plasmidSeq.substring(0, marker.end - 1);
+                            } else {
+                                return plasmidSeq.substring(marker.start - 1, marker.end - 1);
+                            }
                         }
                     });
 

@@ -40,6 +40,16 @@
             function addPlasmid(plasmid) {
                 plasmids.push(plasmid);
             }
+             
+            function plasmid(id) {
+                var i;
+                for (i = 0; i < plasmids.length; i += 1) {
+                    if (plasmids[i].id === id) {
+                        return plasmids[i];
+                    }
+                }
+            }
+             
             function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
                 var angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
                 return {
@@ -227,6 +237,7 @@
                 api : {
                     addPlasmid : addPlasmid,
                     plasmids : plasmids,
+                    plasmid : plasmid,
                     plasmidtracks : tracks,
                     trackmarkers : markers
                 },

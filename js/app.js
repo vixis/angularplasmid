@@ -65,6 +65,17 @@
             }
         };
 
+        $scope.mclick = function(e,m){
+            console.log(m.start);
+        }
+        
+        $scope.lclick = function(e, l){
+            console.log(l.text);
+        }
+        $scope.test = function(event, label){
+            console.log("test");
+        };
+        
         $scope.save = function () {
             var canvas, img, imglink,
                 svg = document.getElementById('p1');

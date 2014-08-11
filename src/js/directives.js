@@ -132,7 +132,7 @@
                     }
                 },
                 controller : ['$scope', function ($scope) {
-                    var plasmid, element, plasmidTrack, markers = [], scales = [];
+                    var plasmid, element, plasmidTrack, markers = [], scales = [], labels = [];
 
                     plasmidTrack = this;
 
@@ -153,6 +153,9 @@
                         angular.forEach(scales, function (s) {
                             s.draw();
                         });
+                        angular.forEach(labels, function (l) {
+                            l.draw();
+                        });
                     };
 
                     plasmidTrack.addMarker = function (marker) {
@@ -161,6 +164,10 @@
 
                     plasmidTrack.addScale = function (scale) {
                         scales.push(scale);
+                    };
+                    
+                    plasmidTrack.addLabel = function (label) {
+                        labels.push(label);
                     };
 
                     plasmidTrack.markergroup = function (groupName) {
@@ -216,6 +223,7 @@
 
                     plasmidTrack.markers = markers;
                     plasmidTrack.scales = scales;
+                    plasmidTrack.labels = labels;
 
                 }]
             };
@@ -394,7 +402,7 @@
 
                         // Watch for changes to label
                         labelController = controllers[0];
-                        scope.$watchGroup(['text','vadjust','hadjust'], function () {labelController.draw(); });
+                        scope.$watchGroup(['text', 'vadjust', 'hadjust'], function () {labelController.draw(); });
                     }
                 },
                 controller : ['$scope', function ($scope) {
@@ -404,6 +412,7 @@
 
                     trackLabel.init = function (elem, trackCtrl) {
                         track = trackCtrl;
+                        track.addLabel(trackLabel);
                         trackLabel.track = track;
                         element = elem;
                     };
@@ -429,12 +438,12 @@
                     });
                     Object.defineProperty(trackLabel, "hadjust", {
                         get: function () {
-                            return SVGUtil.util.Numeric($scope.hadjust,0);
+                            return SVGUtil.util.Numeric($scope.hadjust, 0);
                         }
                     });
                     Object.defineProperty(trackLabel, "vadjust", {
                         get: function () {
-                            return SVGUtil.util.Numeric($scope.vadjust,0);
+                            return SVGUtil.util.Numeric($scope.vadjust, 0);
                         }
                     });
                     Object.defineProperty(trackLabel, "dimensions", {
@@ -600,6 +609,12 @@
                         }
 
                     };
+                    marker.fireClick = function (event) {
+                        $scope.markerclick({
+                            $e: event.$e,
+                            $marker: event.$marker
+                        });
+                    };
                     Object.defineProperty(marker, "center", {
                         get: function () {
                             return track.center;
@@ -721,7 +736,8 @@
                     showline : "@",
                     linestyle : "@",
                     lineclass : "@",
-                    linevadjust : "@"
+                    linevadjust : "@",
+                    labelclick : "&"
                 },
                 link: {
                     pre : function (scope, elem, attr, controllers, transcludeFn) {
@@ -744,11 +760,33 @@
                             elem.append(content);
                         });
 
+                        var markerlabelController = controllers[0],
+                            trackMarkerController = controllers[1],
+                            g = angular.element(elem),
+                            text = (attr.type === 'path') ? angular.element(elem.children()[2]) : angular.element(elem.children()[1]);
+
                         //Apply directive's properties (class, style, id, name) to the text
-                        var g = angular.element(elem), text = (attr.type === 'path') ? angular.element(elem.children()[2]) : angular.element(elem.children()[1]);
                         text.attr("text-anchor", "middle");
                         text.attr("alignment-baseline", "middle");
                         SVGUtil.util.swapProperties(g, text);
+                        
+                        //Attach event handlers
+                        if (attr.labelclick) {
+                            text.on("click", function (e) {
+                                scope.labelclick({
+                                    $e: e,
+                                    $label: markerlabelController
+                                });
+                            });
+                        // or bubble up events to the marker
+                        } else {
+                            text.on("click", function (e) {
+                                trackMarkerController.fireClick({
+                                    $e: e,
+                                    $marker: trackMarkerController
+                                });
+                            });
+                        }
                     }
                 },
                 controller : ['$scope', function ($scope) {

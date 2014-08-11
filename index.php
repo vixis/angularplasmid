@@ -72,7 +72,9 @@
 				<trackscale class="scale-major" interval="50" direction="in" showlabels="1" labelclass="scale-label"></trackscale>
                 <trackscale class="scale-major" interval="50" vadjust="{{vadjust}}" labelvadjust="{{labelvadjust}}" labelclass="scale-label" showlabels="1"></trackscale>
                 <trackscale class="scale-minor" interval="10"></trackscale>
-				<trackmarker class="trackmarker" start="50" end="100" arrowendlength="4"><markerlabel text="AcoII" type="path"></markerlabel></trackmarker>
+				<trackmarker class="trackmarker" start="50" end="100" arrowendlength="4">
+                    <markerlabel labelclick="test($e, $label)" text="AcoII" type="path"></markerlabel>
+                </trackmarker>
 				<trackmarker class="trackmarker" start="450" end="625" arrowendlength="4" wadjust="6" vadjust="-3"><markerlabel text="NolI" type="path"></markerlabel></trackmarker>
 				<trackmarker class="trackmarker" start="650" end="712"><markerlabel text="NolI" halign="end" valign="outer" vadjust="50" showline="1" linevadjust="-20" lineclass="label-line"></markerlabel></trackmarker>
 				<trackmarker class="enzyme" start="740"><markerlabel text="ACII" vadjust="50" hadjust="2" valign="outer" showline="1" linevadjust="-20" lineclass="label-line"></markerlabel></trackmarker>

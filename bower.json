@@ -1,0 +1,34 @@
+{
+  "name": "AngluarPlasmid",
+  "version": "0.0.1",
+  "authors": [
+    "Rehan Chawdry <rchawdry@vixis.com>"
+  ],
+  "description": "DNA plasmid mapping components",
+  "moduleType": [
+    "globals"
+  ],
+  "keywords": [
+    "AngularJS",
+    "DNA",
+    "Plasmid",
+    "Drawing",
+    "SVG",
+    "Nucleotides",
+    "Restriction",
+    "Enzyme"
+  ],
+  "license": "MIT",
+  "homepage": "angularplasmid.vixis.com",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "~1.3.*"
+  }
+}

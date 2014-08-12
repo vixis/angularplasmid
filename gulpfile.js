@@ -27,15 +27,15 @@ gulp.task("clean", function (cb) {
 
 gulp.task("scriptsComplete", function () {
     return gulp.src(srcComplete)
-        .pipe(uglify())
         .pipe(concat("angularplasmid.complete.min.js"))
+        .pipe(uglify())
         .pipe(gulp.dest("./dist"));
 });
 
 gulp.task("scriptsCore",  function () {
     return gulp.src(srcCore)
-        .pipe(uglify())
         .pipe(concat("angularplasmid.min.js"))
+        .pipe(uglify())
         .pipe(gulp.dest("./dist"));
 });
 

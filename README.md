@@ -1,4 +1,4 @@
-angularplasmid
+AngularPlasmid
 ==============
 
 Biological Plasmid Visualization Component using AngularJS

@@ -1,0 +1,25 @@
+{
+  "name": "AngularPlasmid",
+  "version": "0.0.1",
+  "description": "Biological Plasmid Visualization Component using AngularJS",
+  "main": "gulpfile.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vixis/angularplasmid.git"
+  },
+  "author": "Rehan Chawdry",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vixis/angularplasmid/issues"
+  },
+  "homepage": "https://github.com/vixis/angularplasmid",
+  "devDependencies": {
+    "del": "^0.1.1",
+    "gulp": "^3.8.7",
+    "gulp-concat": "^2.3.4",
+    "gulp-uglify": "^0.3.1"
+  }
+}

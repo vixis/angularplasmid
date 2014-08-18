@@ -46,6 +46,8 @@
                     var element, plasmid, tracks = [];
 
                     plasmid = this;
+                    
+                    plasmid.type = "plasmid";
 
                     plasmid.init = function (elem) {
                         SVGUtil.api.addPlasmid(plasmid);
@@ -108,7 +110,8 @@
                 require: ['plasmidtrack', '^plasmid'],
                 scope: {
                     radius: '@',
-                    width: '@'
+                    width: '@',
+                    trackclick: '&'
                 },
                 link : {
                     pre : function (scope, elem, attr, controllers, transcludeFn) {
@@ -127,6 +130,15 @@
                         SVGUtil.util.swapProperties(g, path);
                         path.attr("fill-rule", "evenodd");
 
+                        //Attach event handlers
+                        path.on("click", function (e) {
+                            scope.trackclick({
+                                $event: e,
+                                $track: trackController
+                            });
+                        });
+
+                        
                         // Watch for changes in the track
                         scope.$watchGroup(['radius', 'width'], function () {trackController.draw(); });
                     }
@@ -135,10 +147,12 @@
                     var plasmid, element, plasmidTrack, markers = [], scales = [], labels = [];
 
                     plasmidTrack = this;
+                    
+                    plasmidTrack.type = "plasmidtrack";
 
                     plasmidTrack.init = function (elem, plasmidCtrl) {
                         plasmid = plasmidCtrl;
-                        plasmid.addTrack(this);
+                        plasmid.addTrack(plasmidTrack);
                         plasmidTrack.plasmid = plasmid;
                         element = elem;
                     };
@@ -278,7 +292,8 @@
                         DEFAULT_LABELVADJUST = 15, DEFAULT_TICKSIZE = 3;
 
                     trackScale = this;
-
+                    trackScale.type = "trackscale";
+                    
                     trackScale.init = function (elem, groupElem, trackCtrl) {
                         track = trackCtrl;
                         track.addScale(trackScale);
@@ -409,6 +424,7 @@
                     var track, trackLabel, element;
                     
                     trackLabel = this;
+                    trackLabel.type = "tracklabel";
 
                     trackLabel.init = function (elem, trackCtrl) {
                         track = trackCtrl;
@@ -499,7 +515,7 @@
                         //Attach event handlers
                         path.on("click", function (e) {
                             scope.markerclick({
-                                $e: e,
+                                $event: e,
                                 $marker: markerController
                             });
                         });
@@ -513,10 +529,11 @@
                     var track, marker, element, markerLabels = [];
 
                     marker = this;
+                    marker.type = "trackmarker";
 
                     marker.init = function (elem, trackCtrl) {
                         track = trackCtrl;
-                        track.addMarker(this);
+                        track.addMarker(marker);
                         element = elem;
                         marker.track = track;
                     };
@@ -611,7 +628,7 @@
                     };
                     marker.fireClick = function (event) {
                         $scope.markerclick({
-                            $e: event.$e,
+                            $event: event.$event,
                             $marker: event.$marker
                         });
                     };
@@ -774,7 +791,7 @@
                         if (attr.labelclick) {
                             text.on("click", function (e) {
                                 scope.labelclick({
-                                    $e: e,
+                                    $event: e,
                                     $label: markerlabelController
                                 });
                             });
@@ -782,7 +799,7 @@
                         } else {
                             text.on("click", function (e) {
                                 trackMarkerController.fireClick({
-                                    $e: e,
+                                    $event: e,
                                     $marker: trackMarkerController
                                 });
                             });
@@ -793,6 +810,7 @@
                     var marker, markerLabel, textElement, pathElement, lineElement, groupElement;
 
                     markerLabel = this;
+                    markerLabel.type = "markerlabel";
 
                     markerLabel.init = function (textElem, groupElem, pathElem, lineElem, markerCtrl) {
                         marker = markerCtrl;
@@ -943,29 +961,7 @@
                     });
                 }]
             };
-        }])
-
-        .directive("spinner", function () {
-            return {
-                restrict: "A",
-                scope: {
-                    ngModel: "="
-                },
-                link: function (scope, elem, attr) {
-                    elem.bind('keydown keypress', function (e) {
-                        if (e.which === 38) {
-                            scope.$apply(function () {
-                                scope.ngModel = Number(scope.ngModel) - 6;
-                            });
-                        } else if (e.which === 40) {
-                            scope.$apply(function () {
-                                scope.ngModel = Number(scope.ngModel) + 6;
-                            });
-                        }
-                    });
-                }
-            };
-        });
+        }]);
 
 }());
 

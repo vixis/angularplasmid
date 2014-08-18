@@ -60,7 +60,7 @@
 
             function swapProperties(elemFrom, elemTo) {
                 var property, fromProp, i,
-                    PROPLIST = ['id', 'name', 'class', 'style', 'filter'];
+                    PROPLIST = ['id', 'name', 'class', 'style', 'filter', 'ng-attr-style', 'ng-attr-class'];
 
                 for (i = 0; i < PROPLIST.length; i += 1) {
                     property = PROPLIST[i];

@@ -100,7 +100,7 @@
             };
         }])
 
-         .directive("plasmidtrack", ['SVGUtil', function (SVGUtil) {
+         .directive("plasmidtrack", ['SVGUtil', '$compile', function (SVGUtil, $compile) {
             return {
                 restrict: 'AE',
                 type : 'svg',
@@ -129,6 +129,7 @@
                         var g = angular.element(elem), path  = angular.element(elem.children()[0]), trackController = controllers[0];
                         SVGUtil.util.swapProperties(g, path);
                         path.attr("fill-rule", "evenodd");
+                        $compile(path)(scope.$parent);
 
                         //Attach event handlers
                         path.on("click", function (e) {
@@ -138,11 +139,12 @@
                             });
                         });
 
-                        
+
                         // Watch for changes in the track
                         scope.$watchGroup(['radius', 'width'], function () {trackController.draw(); });
                     }
                 },
+                    
                 controller : ['$scope', function ($scope) {
                     var plasmid, element, plasmidTrack, markers = [], scales = [], labels = [];
 
@@ -243,7 +245,7 @@
             };
         }])
 
-         .directive("trackscale", ['SVGUtil', function (SVGUtil) {
+         .directive("trackscale", ['SVGUtil', '$compile', function (SVGUtil, $compile) {
             return {
                 restrict: 'AE',
                 type : 'svg',
@@ -279,6 +281,7 @@
                         g = angular.element(elem);
                         path  = angular.element(elem.children()[0]);
                         SVGUtil.util.swapProperties(g, path);
+                        $compile(path)(scope.$parent);
 
                         // Watch for changes to scale
                         scaleController = controllers[0];
@@ -471,7 +474,7 @@
             };
         }])
 
-        .directive("trackmarker", ['SVGUtil', function (SVGUtil) {
+        .directive("trackmarker", ['SVGUtil', '$compile', function (SVGUtil, $compile) {
             return {
                 restrict: 'AE',
                 type : 'svg',
@@ -511,6 +514,7 @@
                         g = angular.element(elem);
                         path  = angular.element(elem.children()[0]);
                         SVGUtil.util.swapProperties(g, path);
+                        $compile(path)(scope.$parent);
 
                         //Attach event handlers
                         path.on("click", function (e) {
@@ -521,7 +525,7 @@
                         });
 
                         // Watch for changes to marker
-                        scope.$watchGroup(['start', 'end', 'vadjust', 'wadjust'], function () {markerController.draw(); });
+                        scope.$watchGroup(['start', 'end', 'vadjust', 'wadjust', 'markergroup', 'arrowstartlength', 'arrowstartwidth', 'arrowstartangle', 'arrowendlength', 'arrowendwidth', 'arrowendangle'], function () {markerController.draw(); });
 
                     }
                 },
@@ -732,7 +736,7 @@
             };
         }])
 
-        .directive("markerlabel", ['SVGUtil', function (SVGUtil) {
+        .directive("markerlabel", ['SVGUtil', '$compile', function (SVGUtil, $compile) {
 
             return {
                 restrict: 'AE',
@@ -786,6 +790,7 @@
                         text.attr("text-anchor", "middle");
                         text.attr("alignment-baseline", "middle");
                         SVGUtil.util.swapProperties(g, text);
+                        $compile(text)(scope.$parent);
                         
                         //Attach event handlers
                         if (attr.labelclick) {

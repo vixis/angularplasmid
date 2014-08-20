@@ -261,7 +261,8 @@
                     showlabels : "@",
                     labelvadjust : "@",
                     labelclass : "@",
-                    labelstyle : "@"
+                    labelstyle : "@",
+                    scaleclick : "&"
                 },
                 link : {
                     pre : function (scope, elem, attr, controllers, transcludeFn) {
@@ -283,10 +284,18 @@
                         SVGUtil.util.swapProperties(g, path);
                         $compile(path)(scope.$parent);
 
+                        
+                        //Attach event handlers
+                        path.on("click", function (e) {
+                            scope.scaleclick({
+                                $event: e,
+                                $scale: scaleController
+                            });
+                        });
+                        
                         // Watch for changes to scale
                         scaleController = controllers[0];
-                        scope.$watchGroup(['interval', 'vadjust', 'ticksize', 'labelvadjust'], function () {scaleController.draw(); });
-
+                        scope.$watchGroup(['interval', 'vadjust', 'ticksize', 'labelvadjust', 'direction', 'showlabels', 'labelstyle'], function () {scaleController.draw(); });
 
                     }
                 },
@@ -312,12 +321,21 @@
                         element.attr("d", path);
                         if (trackScale.showlabels) {
                             trackScale.drawLabel();
+                        } else {
+                            groupElement.empty();
                         }
                     };
 
                     trackScale.drawLabel = function () {
                         var i, t, labels, center = track.center;
 
+                        function clickHandler(e) {
+                            $scope.scaleclick({
+                                $event: e,
+                                $scale: trackScale
+                            });
+                        }
+                        
                         labels = SVGUtil.svg.element.scalelabels(center.x, center.y, trackScale.labelradius, trackScale.interval, trackScale.total);
                         groupElement.empty();
                         for (i = 0; i <= labels.length - 1; i += 1) {
@@ -326,9 +344,10 @@
                             if (trackScale.labelstyle) { t.attr('style', trackScale.labelstyle); }
                             t.attr("x", labels[i].x);
                             t.attr("y", labels[i].y);
-                            t.css("text-anchor", "middle");
-                            t.css("alignment-baseline", "middle");
+                            t.attr("text-anchor", "middle");
+                            t.attr("alignment-baseline", "middle");
                             t.text(labels[i].text);
+                            t.on("click", clickHandler);
                             groupElement.append(t);
                         }
                     };
@@ -402,7 +421,8 @@
                 scope: {
                     text: "@",
                     hadjust : "@",
-                    vadjust : "@"
+                    vadjust : "@",
+                    labelclick : "&"
                 },
                 link : {
                     pre : function (scope, elem, attr, controllers, transcludeFn) {
@@ -416,6 +436,18 @@
                         //Manually transclude children elements
                         transcludeFn(scope.$parent, function (content) {
                             elem.append(content);
+                        });
+
+                        // Set some default properties for the label display
+                        elem.attr("text-anchor", "middle");
+                        elem.attr("alignment-baseline", "middle");
+
+                        //Attach event handlers
+                        elem.on("click", function (e) {
+                            scope.labelclick({
+                                $event: e,
+                                $label: labelController
+                            });
                         });
 
                         // Watch for changes to label
@@ -440,8 +472,6 @@
                         var center = track.center, startX, startY;
                         element.attr("x", center.x + trackLabel.hadjust);
                         element.attr("y", center.y + trackLabel.vadjust);
-                        element.css("text-anchor", "middle");
-                        element.css("alignment-baseline", "middle");
                         element.text(trackLabel.text);
                     };
 
@@ -742,9 +772,7 @@
                 restrict: 'AE',
                 type : 'svg',
                 transclude: true,
-                template: function (elem, attr) {
-                    return (attr.type === 'path') ? '<g><path></path><path id="" style="fill:none;stroke:none"></path><text><textpath xlink:href="#">{{text}}</textpath></text></g>' : '<g><path></path><text>{{text}}</text></g>';
-                },
+                template: '<g><path></path><path id="" style="fill:none;stroke:none"></path><text>{{textnormal}}<textpath xlink:href="#">{{textpath}}</textpath></text></g>',
                 require: ['markerlabel', '^trackmarker'],
                 replace : true,
                 scope: {
@@ -762,18 +790,13 @@
                 },
                 link: {
                     pre : function (scope, elem, attr, controllers, transcludeFn) {
-                        var markerlabelController = controllers[0], trackMarkerController = controllers[1],
-                            groupElem, pathElem, textElem, lineElem;
-                        if (attr.type === 'path') {
-                            groupElem = angular.element(elem[0]);
-                            lineElem = angular.element(elem.children()[0]);
-                            pathElem = angular.element(elem.children()[1]);
+                        var markerlabelController = controllers[0],
+                            trackMarkerController = controllers[1],
+                            groupElem = angular.element(elem[0]),
+                            lineElem = angular.element(elem.children()[0]),
+                            pathElem = angular.element(elem.children()[1]),
                             textElem = angular.element(elem.children()[2]);
-                        } else {
-                            groupElem = angular.element(elem[0]);
-                            lineElem = angular.element(elem.children()[0]);
-                            textElem = angular.element(elem.children()[1]);
-                        }
+
                         markerlabelController.init(textElem, groupElem, pathElem, lineElem, trackMarkerController);
                     },
                     post : function (scope, elem, attr, controllers, transcludeFn) {
@@ -784,7 +807,7 @@
                         var markerlabelController = controllers[0],
                             trackMarkerController = controllers[1],
                             g = angular.element(elem),
-                            text = (attr.type === 'path') ? angular.element(elem.children()[2]) : angular.element(elem.children()[1]);
+                            text = angular.element(elem.children()[2]);
 
                         //Apply directive's properties (class, style, id, name) to the text
                         text.attr("text-anchor", "middle");
@@ -809,6 +832,10 @@
                                 });
                             });
                         }
+                        
+                        // Watch for changes to label
+                        scope.$watchGroup(['text', 'type', 'valign', 'vadjust', 'halign', 'hadjust', 'showline', 'linevadjust', 'linestyle'], function () {markerlabelController.draw(); });
+
                     }
                 },
                 controller : ['$scope', function ($scope) {
@@ -818,6 +845,9 @@
                     markerLabel.type = "markerlabel";
 
                     markerLabel.init = function (textElem, groupElem, pathElem, lineElem, markerCtrl) {
+                        var id = 'TPATH' + (Math.random() + 1).toString(36).substring(3, 7),
+                            textPathElem = angular.element(textElem.children()[0]);
+
                         marker = markerCtrl;
                         marker.addMarkerLabel(markerLabel);
                         markerLabel.marker = marker;
@@ -825,38 +855,45 @@
                         pathElement = pathElem;
                         lineElement = lineElem;
                         groupElement = groupElem;
+                        
+                        pathElement.attr("id", id);
+                        textPathElem.attr("xlink:href", '#' + id);
+
                     };
 
                     markerLabel.draw = function () {
                         var VALIGN_MIDDLE = "middle", VALIGN_INNER = "inner", VALIGN_OUTER = "outer",
                             HALIGN_MIDDLE = "middle", HALIGN_START = "start", HALIGN_END = "end",
-                            textPathElem, fontSize, fontAdjust, id, pos, markerAngle, src, dst, dstPos, dstV;
+                            fontSize = 0, fontAdjust = 0,
+                            textPathElem, pos, markerAngle, src, dst, dstPos, dstV;
 
                         if (markerLabel.type === 'path') {
+                            $scope.textnormal = null;
+                            $scope.textpath = markerLabel.text;
+                            textElement.removeAttr("x");
+                            textElement.removeAttr("y");
                             textPathElem = angular.element(textElement.children()[0]);
                             fontSize = window.getComputedStyle(textElement[0]).fontSize.replace("px", "");
                             fontAdjust = (markerLabel.valign === VALIGN_OUTER) ? 0 : (markerLabel.valign === VALIGN_INNER) ? Number(fontSize || 0) : Number(fontSize || 0) / 2;
-
                             pathElement.attr("d", markerLabel.getPath(markerLabel.hadjust, markerLabel.vadjust - fontAdjust, markerLabel.halign, markerLabel.valign));
 
                             switch (markerLabel.halign) {
                             case HALIGN_START:
                                 textElement.attr("text-anchor", "start");
-                                textPathElem[0].setAttribute("startOffset", "0%"); //jQuery can't handle case sensitive names
+                                textPathElem[0].setAttribute("startOffset", "0%"); //jQuery can't handle case sensitive names so can't use textPathElem.attr
                                 break;
                             case HALIGN_END:
                                 textElement.attr("text-anchor", "end");
-                                textPathElem[0].setAttribute("startOffset", "100%");//jQuery can't handle case sensitive names
+                                textPathElem[0].setAttribute("startOffset", "100%");//jQuery can't handle case sensitive names so can't use textPathElem.attr
                                 break;
                             default:
                                 textElement.attr("text-anchor", "middle");
-                                textPathElem[0].setAttribute("startOffset", "50%");//jQuery can't handle case sensitive names
+                                textPathElem[0].setAttribute("startOffset", "50%");//jQuery can't handle case sensitive names so can't use textPathElem.attr
                                 break;
                             }
-                            id = 'TPATH' + (Math.random() + 1).toString(36).substring(3, 7);
-                            pathElement.attr("id", id);
-                            textPathElem.attr("xlink:href", '#' + id);
                         } else {
+                            $scope.textnormal = markerLabel.text;
+                            $scope.textpath = null;
                             pos = marker.getPosition(markerLabel.hadjust, markerLabel.vadjust, markerLabel.halign, markerLabel.valign);
                             textElement.attr("x", pos.x);
                             textElement.attr("y", pos.y);
@@ -874,6 +911,8 @@
                             if (!markerLabel.linestyle && !markerLabel.lineclass) { lineElement.attr("style", "stroke:#000"); }
                             if (markerLabel.linestyle) { lineElement.attr("style", markerLabel.linestyle); }
                             if (markerLabel.lineclass) { lineElement.attr("class", markerLabel.lineclass); }
+                        } else {
+                            lineElement.removeAttr("d");
                         }
                     };
 

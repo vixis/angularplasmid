@@ -17,7 +17,7 @@
             return {
                 restrict: 'AE',
                 type : 'svg',
-                template : '<svg></svg>',
+                template : '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"></svg>',
                 replace : true,
                 transclude: true,
                 require: 'plasmid',
@@ -100,7 +100,7 @@
             };
         }])
 
-         .directive("plasmidtrack", ['SVGUtil', '$compile', function (SVGUtil, $compile) {
+        .directive("plasmidtrack", ['SVGUtil', '$compile', function (SVGUtil, $compile) {
             return {
                 restrict: 'AE',
                 type : 'svg',
@@ -245,7 +245,7 @@
             };
         }])
 
-         .directive("trackscale", ['SVGUtil', '$compile', function (SVGUtil, $compile) {
+        .directive("trackscale", ['SVGUtil', '$compile', function (SVGUtil, $compile) {
             return {
                 restrict: 'AE',
                 type : 'svg',
@@ -1005,7 +1005,28 @@
                     });
                 }]
             };
-        }]);
+        }])
+    
+        .directive("svgelement", ['SVGUtil', function (SVGUtil) {
+            return {
+                restrict: 'AE',
+                template: function(elem, attr){
+                    return '<' + attr.type + '></' + attr.type + '>';
+                },
+                type : 'svg',
+                replace : true,
+                transclude: true,
+                require: ['^plasmid'],
+                scope: {},
+                link: function (scope, elem, attr, controllers, transcludeFn) {
 
+                    //Manually transclude children elements
+                    transcludeFn(scope.$parent, function (content) {
+                        elem.append(content);
+                    });
+                }
+            };
+        }])
+    
 }());
 

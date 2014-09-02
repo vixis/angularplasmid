@@ -47,7 +47,7 @@
 
                     plasmid = this;
                     
-                    plasmid.type = "plasmid";
+                    plasmid.elementtype = "plasmid";
 
                     plasmid.init = function (elem) {
                         SVGUtil.api.addPlasmid(plasmid);
@@ -150,7 +150,7 @@
 
                     plasmidTrack = this;
                     
-                    plasmidTrack.type = "plasmidtrack";
+                    plasmidTrack.elementtype = "plasmidtrack";
 
                     plasmidTrack.init = function (elem, plasmidCtrl) {
                         plasmid = plasmidCtrl;
@@ -304,7 +304,7 @@
                         DEFAULT_LABELVADJUST = 15, DEFAULT_TICKSIZE = 3;
 
                     trackScale = this;
-                    trackScale.type = "trackscale";
+                    trackScale.elementtype = "trackscale";
                     
                     trackScale.init = function (elem, groupElem, trackCtrl) {
                         track = trackCtrl;
@@ -459,7 +459,7 @@
                     var track, trackLabel, element;
                     
                     trackLabel = this;
-                    trackLabel.type = "tracklabel";
+                    trackLabel.elementtype = "tracklabel";
 
                     trackLabel.init = function (elem, trackCtrl) {
                         track = trackCtrl;
@@ -563,7 +563,7 @@
                     var track, marker, element, markerLabels = [];
 
                     marker = this;
-                    marker.type = "trackmarker";
+                    marker.elementtype = "trackmarker";
 
                     marker.init = function (elem, trackCtrl) {
                         track = trackCtrl;
@@ -842,7 +842,7 @@
                     var marker, markerLabel, textElement, pathElement, lineElement, groupElement;
 
                     markerLabel = this;
-                    markerLabel.type = "markerlabel";
+                    markerLabel.elementtype = "markerlabel";
 
                     markerLabel.init = function (textElem, groupElem, pathElem, lineElem, markerCtrl) {
                         var id = 'TPATH' + (Math.random() + 1).toString(36).substring(3, 7),

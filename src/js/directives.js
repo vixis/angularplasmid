@@ -25,7 +25,9 @@
                     plasmidheight : '@',
                     plasmidwidth : '@',
                     sequencelength : '@',
-                    sequence : '@'
+                    sequence : '@',
+                    plasmidclass : '@',
+                    plasmidstyle : '@'
                 },
                 link : {
                     pre : function (scope, elem, attr, plasmidController) {
@@ -39,7 +41,7 @@
                         });
 
                         // Watch for changes to plasmid
-                        scope.$watchGroup(['plasmidheight', 'plasmidwidth', 'sequencelength', 'sequence'], function () {plasmidController.draw(); });
+                        scope.$watchGroup(['plasmidheight', 'plasmidwidth', 'sequencelength', 'sequence', 'plasmidclass', 'plasmidstyle'], function () {plasmidController.draw(); });
                     }
                 },
                 controller : ['$scope', 'SVGUtil', function ($scope, SVGUtil) {
@@ -56,9 +58,12 @@
                     };
 
                     plasmid.draw = function () {
-                        var d = plasmid.dimensions;
+                        var d = plasmid.dimensions, plasmidclass = element.plasmidclass, plasmidstyle = element.plasmidstyle;
                         element.attr("height", d.height);
                         element.attr("width", d.width);
+                        if (plasmidclass) {element.attr("class",plasmidclass);}
+                        if (plasmidstyle) {element.attr("style", plasmidstyle);}
+
                         angular.forEach(tracks, function (t) {
                             t.draw();
                         });
@@ -95,6 +100,16 @@
                             return $scope.sequence;
                         }
                     });
+                    Object.defineProperty(plasmid, "plasmidclass", {
+                        get: function () {
+                            return $scope.plasmidclass;
+                        }
+                    });
+                    Object.defineProperty(plasmid, "plasmidstyle", {
+                        get: function () {
+                            return $scope.plasmidstyle;
+                        }
+                    });                    
                     plasmid.tracks = tracks;
                 }]
             };
@@ -111,6 +126,8 @@
                 scope: {
                     radius: '@',
                     width: '@',
+                    trackclass: '@',
+                    trackstyle: '@',
                     trackclick: '&'
                 },
                 link : {
@@ -141,7 +158,7 @@
 
 
                         // Watch for changes in the track
-                        scope.$watchGroup(['radius', 'width'], function () {trackController.draw(); });
+                        scope.$watchGroup(['radius', 'width', 'trackstyle', 'trackclass'], function () {trackController.draw(); });
                     }
                 },
                     
@@ -161,8 +178,14 @@
 
                     plasmidTrack.draw = function () {
                         var center = plasmidTrack.center,
-                            path = SVGUtil.svg.path.donut(center.x, center.y, plasmidTrack.radius, plasmidTrack.width);
+                            path = SVGUtil.svg.path.donut(center.x, center.y, plasmidTrack.radius, plasmidTrack.width),
+                            trackclass = plasmidTrack.trackclass, 
+                            trackstyle = plasmidTrack.trackstyle;
+                        
                         element.attr("d", path);
+                        if (trackclass) {element.attr("class",trackclass);}
+                        if (trackstyle) {element.attr("style", trackstyle);}
+                        
                         angular.forEach(markers, function (m) {
                             m.draw();
                         });
@@ -236,6 +259,16 @@
                             return SVGUtil.util.Numeric($scope.width, 25);
                         }
                     });
+                    Object.defineProperty(plasmidTrack, "trackclass", {
+                        get: function () {
+                            return $scope.trackclass;
+                        }
+                    });
+                    Object.defineProperty(plasmidTrack, "trackstyle", {
+                        get: function () {
+                            return $scope.trackstyle;
+                        }
+                    });
 
                     plasmidTrack.markers = markers;
                     plasmidTrack.scales = scales;
@@ -262,6 +295,8 @@
                     labelvadjust : "@",
                     labelclass : "@",
                     labelstyle : "@",
+                    tickclass : "@",
+                    tickstyle : "@",
                     scaleclick : "&"
                 },
                 link : {
@@ -295,7 +330,7 @@
                         
                         // Watch for changes to scale
                         scaleController = controllers[0];
-                        scope.$watchGroup(['interval', 'vadjust', 'ticksize', 'labelvadjust', 'direction', 'showlabels', 'labelstyle'], function () {scaleController.draw(); });
+                        scope.$watchGroup(['interval', 'vadjust', 'ticksize', 'labelvadjust', 'direction', 'showlabels', 'labelstyle', 'labelclass','tickstyle','tickclass'], function () {scaleController.draw(); });
 
                     }
                 },
@@ -315,10 +350,16 @@
                     };
 
                     trackScale.draw = function () {
-                        var center = track.center,
+                        var tickclass = trackScale.tickclass,
+                            tickstyle = trackScale.tickstyle,
+                            center = track.center,
                             path = SVGUtil.svg.path.scale(center.x, center.y, trackScale.radius, trackScale.interval, trackScale.total, trackScale.ticksize);
 
                         element.attr("d", path);
+                        if (tickclass) {element.attr("class",tickclass);}
+                        if (tickstyle) {element.attr("style", tickstyle);}
+
+                        
                         if (trackScale.showlabels) {
                             trackScale.drawLabel();
                         } else {
@@ -391,6 +432,16 @@
                             return SVGUtil.util.Numeric($scope.labelvadjust, DEFAULT_LABELVADJUST);
                         }
                     });
+                    Object.defineProperty(trackScale, "tickclass", {
+                        get: function () {
+                            return $scope.tickclass;
+                        }
+                    });
+                    Object.defineProperty(trackScale, "tickstyle", {
+                        get: function () {
+                            return $scope.tickstyle;
+                        }
+                    });
                     Object.defineProperty(trackScale, "labelclass", {
                         get: function () {
                             return $scope.labelclass;
@@ -422,6 +473,8 @@
                     text: "@",
                     hadjust : "@",
                     vadjust : "@",
+                    labelclass: "@",
+                    labelstyle : '@',
                     labelclick : "&"
                 },
                 link : {
@@ -452,7 +505,7 @@
 
                         // Watch for changes to label
                         labelController = controllers[0];
-                        scope.$watchGroup(['text', 'vadjust', 'hadjust'], function () {labelController.draw(); });
+                        scope.$watchGroup(['text', 'vadjust', 'hadjust','labelstyle','labelclass'], function () {labelController.draw(); });
                     }
                 },
                 controller : ['$scope', function ($scope) {
@@ -469,10 +522,15 @@
                     };
 
                     trackLabel.draw = function () {
-                        var center = track.center, startX, startY;
+                        var center = track.center, startX, startY,
+                            labelclass = trackLabel.labelclass,
+                            labelstyle = trackLabel.labelstyle;
+
                         element.attr("x", center.x + trackLabel.hadjust);
                         element.attr("y", center.y + trackLabel.vadjust);
                         element.text(trackLabel.text);
+                        if (labelclass) {element.attr("class",labelclass);}
+                        if (labelstyle) {element.attr("style", labelstyle);}
                     };
 
                     Object.defineProperty(trackLabel, "center", {
@@ -485,6 +543,16 @@
                             return $scope.text;
                         }
                     });
+                    Object.defineProperty(trackLabel, "labelclass", {
+                        get: function () {
+                            return $scope.labelclass;
+                        }
+                    });
+                    Object.defineProperty(trackLabel, "labelstyle", {
+                        get: function () {
+                            return $scope.labelstyle;
+                        }
+                    });                    
                     Object.defineProperty(trackLabel, "hadjust", {
                         get: function () {
                             return SVGUtil.util.Numeric($scope.hadjust, 0);
@@ -524,6 +592,8 @@
                     arrowendlength : "@",
                     arrowendwidth : "@",
                     arrowendangle : "@",
+                    markerclass : "@",
+                    markerstyle : "@",
                     markerclick: "&"
                 },
                 link : {
@@ -555,7 +625,7 @@
                         });
 
                         // Watch for changes to marker
-                        scope.$watchGroup(['start', 'end', 'vadjust', 'wadjust', 'markergroup', 'arrowstartlength', 'arrowstartwidth', 'arrowstartangle', 'arrowendlength', 'arrowendwidth', 'arrowendangle'], function () {markerController.draw(); });
+                        scope.$watchGroup(['start', 'end', 'vadjust', 'wadjust', 'markergroup', 'markerclass','markerstyle','arrowstartlength', 'arrowstartwidth', 'arrowstartangle', 'arrowendlength', 'arrowendwidth', 'arrowendangle'], function () {markerController.draw(); });
 
                     }
                 },
@@ -573,7 +643,12 @@
                     };
 
                     marker.draw = function () {
+                        var markerclass = marker.markerclass,
+                            markerstyle = marker.markerstyle;
+                        
                         element.attr("d", marker.getPath());
+                        if (markerclass) {element.attr("class",markerclass);}
+                        if (markerstyle) {element.attr("style", markerstyle);}
                         angular.forEach(markerLabels, function (markerLabel) {
                             markerLabel.draw();
                         });
@@ -747,6 +822,16 @@
                             return $scope.markergroup;
                         }
                     });
+                    Object.defineProperty(marker, "markerclass", {
+                        get: function () {
+                            return $scope.markerclass;
+                        }
+                    });
+                    Object.defineProperty(marker, "markerstyle", {
+                        get: function () {
+                            return $scope.markerstyle;
+                        }
+                    });                                        
                     Object.defineProperty(marker, "sequence", {
                         get: function () {
                             var plasmidSeq = marker.track.plasmid.sequence,
@@ -772,7 +857,7 @@
                 restrict: 'AE',
                 type : 'svg',
                 transclude: true,
-                template: '<g><path></path><path id="" style="fill:none;stroke:none"></path><text>{{textnormal}}<textpath xlink:href="#">{{textpath}}</textpath></text></g>',
+                template: '<g><path></path><path id="" style="fill:none;stroke:none"></path><text></text></g>',
                 require: ['markerlabel', '^trackmarker'],
                 replace : true,
                 scope: {
@@ -785,6 +870,8 @@
                     showline : "@",
                     linestyle : "@",
                     lineclass : "@",
+                    labelstyle : "@",
+                    labelclass : "@",
                     linevadjust : "@",
                     labelclick : "&"
                 },
@@ -834,19 +921,18 @@
                         }
                         
                         // Watch for changes to label
-                        scope.$watchGroup(['text', 'type', 'valign', 'vadjust', 'halign', 'hadjust', 'showline', 'linevadjust', 'linestyle'], function () {markerlabelController.draw(); });
+                        scope.$watchGroup(['text', 'type', 'valign', 'vadjust', 'halign', 'hadjust', 'showline', 'linevadjust', 'linestyle', 'labelclass','labelstyle'], function () {markerlabelController.draw(); });
 
                     }
                 },
-                controller : ['$scope', function ($scope) {
-                    var marker, markerLabel, textElement, pathElement, lineElement, groupElement;
+                controller : ['$scope', '$compile', function ($scope, $compile) {
+                    var marker, markerLabel, textElement, pathElement, textPathElement, textPathSVG, lineElement, groupElement;
 
                     markerLabel = this;
                     markerLabel.elementtype = "markerlabel";
 
                     markerLabel.init = function (textElem, groupElem, pathElem, lineElem, markerCtrl) {
-                        var id = 'TPATH' + (Math.random() + 1).toString(36).substring(3, 7),
-                            textPathElem = angular.element(textElem.children()[0]);
+                        var id = 'TPATH' + (Math.random() + 1).toString(36).substring(3, 7);
 
                         marker = markerCtrl;
                         marker.addMarkerLabel(markerLabel);
@@ -857,7 +943,6 @@
                         groupElement = groupElem;
                         
                         pathElement.attr("id", id);
-                        textPathElem.attr("xlink:href", '#' + id);
 
                     };
 
@@ -865,14 +950,26 @@
                         var VALIGN_MIDDLE = "middle", VALIGN_INNER = "inner", VALIGN_OUTER = "outer",
                             HALIGN_MIDDLE = "middle", HALIGN_START = "start", HALIGN_END = "end",
                             fontSize = 0, fontAdjust = 0,
-                            textPathElem, pos, markerAngle, src, dst, dstPos, dstV;
+                            labelclass = markerLabel.labelclass, labelstyle = markerLabel.labelstyle,
+                            pos, markerAngle, src, dst, dstPos, dstV;
+
+                        if (labelclass) {textElement.attr("class",labelclass);}
+                        if (labelstyle) {textElement.attr("style", labelstyle);}
 
                         if (markerLabel.type === 'path') {
-                            $scope.textnormal = null;
-                            $scope.textpath = markerLabel.text;
-                            textElement.removeAttr("x");
-                            textElement.removeAttr("y");
-                            textPathElem = angular.element(textElement.children()[0]);
+                            textElement.attr("x",'');
+                            textElement.attr("y",'');
+                            
+                            if (!textPathElement){
+                                textPathSVG = document.createElementNS('http://www.w3.org/2000/svg','textPath');
+                                textPathSVG.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#" + pathElement.attr("id"));  
+                                textPathElement = angular.element(textPathSVG);
+                                $compile(textPathElement)($scope);
+                                textElement.empty();
+                                textElement.append(textPathElement);
+                            }
+                            
+                            textPathSVG.textContent = markerLabel.text;
                             fontSize = window.getComputedStyle(textElement[0]).fontSize.replace("px", "");
                             fontAdjust = (markerLabel.valign === VALIGN_OUTER) ? 0 : (markerLabel.valign === VALIGN_INNER) ? Number(fontSize || 0) : Number(fontSize || 0) / 2;
                             pathElement.attr("d", markerLabel.getPath(markerLabel.hadjust, markerLabel.vadjust - fontAdjust, markerLabel.halign, markerLabel.valign));
@@ -880,23 +977,26 @@
                             switch (markerLabel.halign) {
                             case HALIGN_START:
                                 textElement.attr("text-anchor", "start");
-                                textPathElem[0].setAttribute("startOffset", "0%"); //jQuery can't handle case sensitive names so can't use textPathElem.attr
+                                textPathElement[0].setAttribute("startOffset", "0%"); //jQuery can't handle case sensitive names so can't use textPathElem.attr
                                 break;
                             case HALIGN_END:
                                 textElement.attr("text-anchor", "end");
-                                textPathElem[0].setAttribute("startOffset", "100%");//jQuery can't handle case sensitive names so can't use textPathElem.attr
+                                textPathElement[0].setAttribute("startOffset", "100%");//jQuery can't handle case sensitive names so can't use textPathElem.attr
                                 break;
                             default:
                                 textElement.attr("text-anchor", "middle");
-                                textPathElem[0].setAttribute("startOffset", "50%");//jQuery can't handle case sensitive names so can't use textPathElem.attr
+                                textPathElement[0].setAttribute("startOffset", "50%");//jQuery can't handle case sensitive names so can't use textPathElem.attr
                                 break;
                             }
                         } else {
-                            $scope.textnormal = markerLabel.text;
-                            $scope.textpath = null;
+                            if (textPathElement){
+                                textPathElement.remove();
+                                textPathElement = null;
+                            }
                             pos = marker.getPosition(markerLabel.hadjust, markerLabel.vadjust, markerLabel.halign, markerLabel.valign);
                             textElement.attr("x", pos.x);
                             textElement.attr("y", pos.y);
+                            textElement.text(markerLabel.text);
                         }
 
                         if (markerLabel.showlineflg) {
@@ -986,6 +1086,16 @@
                     Object.defineProperty(markerLabel, "linevadjust", {
                         get: function () {
                             return SVGUtil.util.Numeric($scope.linevadjust);
+                        }
+                    });
+                    Object.defineProperty(markerLabel, "labelclass", {
+                        get: function () {
+                            return $scope.labelclass;
+                        }
+                    });
+                    Object.defineProperty(markerLabel, "labelstyle", {
+                        get: function () {
+                            return $scope.labelstyle;
                         }
                     });
                     Object.defineProperty(markerLabel, "linestyle", {

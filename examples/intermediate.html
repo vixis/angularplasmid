@@ -1,0 +1,10 @@
+<plasmid sequencelength='1000'>
+    <plasmidtrack radius='75' style='fill:#f0f0f0;stroke:#ccc'>
+        <trackmarker ng-repeat='n in [50,90,130,200,350,400,450,600,735,900]' start='{{n}}' end='{{n+20}}' style='fill:#9cf;stroke:#036'>
+            <markerlabel text='Pos [{{n}}]' vadjust='35' style='font-size:10px'></markerlabel>
+        </trackmarker>
+        <tracklabel text='pBR1' style='font-size:25px;font-weight:bold'></tracklabel>
+        <trackscale interval='10' direction='in' style='stroke:#ccc'></trackscale>
+        <trackscale interval='100' direction='in' showlabels='1' style='stroke:#f00;stroke-width:2p' labelvadjust='10' labelstyle='font-size:8px;fill:#999'></trackscale>
+    </plasmidtrack>
+</plasmid>

@@ -2,9 +2,10 @@
   "name": "AngularPlasmid",
   "version": "1.0.0",
   "description": "Biological Plasmid Visualization Component using AngularJS",
-  "main": "gulpfile.js",
+  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "browserify -r ./:angularplasmid -d > dist/plasmid_browserify.js"
   },
   "repository": {
     "type": "git",
@@ -17,9 +18,21 @@
   },
   "homepage": "https://github.com/vixis/angularplasmid",
   "devDependencies": {
+    "browserify": "^8.1.3",
     "del": "^0.1.1",
     "gulp": "^3.8.7",
     "gulp-concat": "^2.3.4",
     "gulp-uglify": "^0.3.1"
+  },
+  "sniper": {
+    "first": "first",
+    "js": [
+      "dist/plasmid_browserify.js"
+    ],
+    "buildJS": []
+  },
+  "keywords": ["biojs", "plasmid"],
+  "dependencies": {
+    "angular": "^1.3.12"
   }
 }

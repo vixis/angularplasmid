@@ -1,6 +1,6 @@
 {
   "name": "AngularPlasmid",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Biological Plasmid Visualization Component using AngularJS",
   "main": "gulpfile.js",
   "scripts": {

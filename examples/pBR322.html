@@ -1,0 +1,55 @@
+<style>
+    @import url("//fonts.googleapis.com/css?family=Lato:300,400,700|Donegal+One|Source+Code+Pro:400");
+    body {
+        font-family: 'Lato';
+    }
+</style>
+<plasmid sequencelength="1000" plasmidheight="375" plasmidwidth="375">
+    <plasmidtrack trackstyle="fill:#f0f0f0;stroke:#009;filter:url(#dropshadow)" width="35" radius="63">
+        <tracklabel text="pBR322" labelstyle="fill:#900;font-weight:700;filter:url(#dropshadow)"></tracklabel>
+        <trackmarker start="100" end="250" markerstyle="fill:rgb(32,32,64)">
+            <markerlabel type="path" labelstyle="fill:#fff;font-size:12px;font-weight:400" text="pUC ORI"></markerlabel>
+        </trackmarker>
+        <trackmarker start="250" end="440" markerstyle="fill:rgb(64,64,128)">
+            <markerlabel type="path" labelstyle="fill:#fff;font-size:12px;font-weight:400" text="hPGK"></markerlabel>
+        </trackmarker>
+        <trackmarker start="440" end="620" markerstyle="fill:rgb(92,92,164)">
+            <markerlabel type="path" labelstyle="fill:#fff;font-size:12px;font-weight:400" text="ORI"></markerlabel>
+        </trackmarker>
+        <trackmarker start="620" end="800" markerstyle="fill:rgb(128,128,192)">
+            <markerlabel type="path" labelstyle="fill:#fff;font-size:12px;font-weight:400" text="AraC"></markerlabel>
+        </trackmarker>
+        <trackmarker start="800" end="975" markerstyle="fill:rgb(192,192,225)">
+            <markerlabel type="path" labelstyle="fill:#000;font-size:12px;font-weight:400" text="Ampf"></markerlabel>
+        </trackmarker>
+        <trackmarker start="975" end="100" markerstyle="fill:rgb(225,225,255)">
+            <markerlabel type="path" labelstyle="fill:#000;font-size:12px;font-weight:400" text="GFP"></markerlabel>
+        </trackmarker>
+        <trackscale interval="50" style="stroke:#c00;stroke-width:2px" vadjust="5" ticksize="4"></trackscale>
+        <trackscale interval="10" style="stroke:#999;stroke-width:1px" vadjust="5"></trackscale>
+        <trackscale interval="50" style="stroke:#c00;stroke-width:2px" ticksize="4" direction="in"></trackscale>
+        <trackscale interval="10" style="stroke:#999;stroke-width:1px" direction="in"></trackscale>
+    </plasmidtrack>
+    <plasmidtrack trackstyle="fill:#f0f0f0;stroke:#999;stroke:#333;filter:url(#dropshadow)" width="20" radius="{{(sample.size/4)+15}}">
+        <trackmarker start="100" end="250" markerstyle="fill:rgb(64,64,64)">
+            <markerlabel type="path" labelstyle="fill:#fff;font-size:10px;font-weight:700" text="LacZ"></markerlabel>
+        </trackmarker>
+        <trackmarker start="250" end="440" markerstyle="fill:rgb(92,92,92)">
+            <markerlabel type="path" labelstyle="fill:#fff;font-size:10px;font-weight:700" text="nat-1"></markerlabel>
+        </trackmarker>
+        <trackmarker start="440" end="620" markerstyle="fill:rgb(128,128,128)">
+            <markerlabel type="path" labelstyle="fill:#fff;font-size:10px;font-weight:700" text="SacB#3"></markerlabel>
+        </trackmarker>
+        <trackmarker start="620" end="800" markerstyle="fill:rgb(192,192,192)">
+            <markerlabel type="path" labelstyle="fill:#fff;font-size:10px;font-weight:700" text="Tn7R"></markerlabel>
+        </trackmarker>
+        <trackmarker start="800" end="975" markerstyle="fill:rgb(225,225,225)">
+            <markerlabel type="path" labelstyle="fill:#000;font-size:10px;font-weight:700" text="SV40 pA"></markerlabel>
+        </trackmarker>
+        <trackmarker start="975" end="100" markerstyle="fill:rgb(252,252,252)">
+            <markerlabel type="path" labelstyle="fill:#000;font-size:10px;font-weight:700" text="Tn7L"></markerlabel>
+        </trackmarker>
+        <trackscale interval="50" style="stroke:#c00;stroke-width:2px" vadjust="5" ticksize="4" showlabels="1" labelstyle="font-size:10px;font-weight:400;fill:#999"></trackscale>
+        <trackscale interval="10" style="stroke:#999;stroke-width:1px" vadjust="5"></trackscale>
+    </plasmidtrack>
+</plasmid>

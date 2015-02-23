@@ -1,6 +1,7 @@
-{
-  "name": "AngluarPlasmid",
-  "version": "0.0.1",
+
+  "name": "angluarplasmid",
+  "version": "1.0.3",
+  "main": "./dist/angularplasmid.min.js",
   "authors": [
     "Rehan Chawdry <rchawdry@vixis.com>"
   ],
@@ -20,7 +21,6 @@
   ],
   "license": "MIT",
   "homepage": "angularplasmid.vixis.com",
-  "private": true,
   "ignore": [
     "**/.*",
     "node_modules",

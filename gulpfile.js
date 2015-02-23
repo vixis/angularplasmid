@@ -6,6 +6,8 @@ var gulp = require("gulp");
 var concat = require("gulp-concat");
 var uglify = require("gulp-uglify");
 var del = require("del");
+var bump = require("gulp-bump");
+var git = require("gulp-git");
 
 var srcComplete = [
     "bower_components/angular/angular.js",
@@ -39,5 +41,28 @@ gulp.task("scriptsCore",  function () {
         .pipe(gulp.dest("./dist"));
 });
 
+gulp.task("bump", function(){
+   return gulp.src(['./package.json', './bower.json'])
+    .pipe(bump())
+    .pipe(gulp.dest('./')); 
+});
+
+gulp.task("tag", function(){
+    var pkg = require('./package.json');
+    var v = pkg.version;
+    var message = 'Release ' + v;
+    
+    return gulp.src('./')
+        .pipe(git.commit(message))
+        .pipe(git.tag(v, message))
+        .pipe(git.push('origin', 'master', '--tags'))
+        .pipe(gulp.dest('./'));
+})
+
+gulp.task('npm', ['bump','tag'], function (done) {
+  require('child_process').spawn('npm', ['publish'], { stdio: 'inherit' })
+    .on('close', done);
+});
 
 gulp.task("default", ["clean", "scriptsCore", "scriptsComplete"]);
+gulp.task("release",['default','npm']);

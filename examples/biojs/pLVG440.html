@@ -1,0 +1,72 @@
+<style>
+    @import url("http://fonts.googleapis.com/css?family=Lato:300,400,700|Donegal+One|Source+Code+Pro:400");
+    body {font-family: 'Lato';font-weight:400;}
+    .marker {fill:none;stroke:#000}
+    .markerbold {stroke-width:3px}
+    .markermedium {stroke-width:2px}
+    .mdlabel {font-size:10px}
+    .smlabel {font-size:10px;font-weight:700}
+</style>
+<plasmid sequencelength="7500" plasmidheight="375" plasmidwidth="375">
+    <plasmidtrack width="5" radius='110'>
+        <tracklabel labelstyle="font-size:18px;font-weight:700" text="pLVG440"></tracklabel>
+        <tracklabel labelstyle="font-size:10px;font-weight:300" vadjust="20" text="7500 bp"></tracklabel>
+
+        <!-- ORF 3 -->
+        <trackmarker start="1607" end="3100" wadjust="15" vadjust="15" class="marker markermedium">
+            <markerlabel type="path" text="ORF 3" labelclass="mdlabel"></markerlabel>
+        </trackmarker>
+
+        <!-- ORF 4 -->
+        <trackmarker start="2940" end="3050" wadjust="10" vadjust="18" class="marker markermedium" arrowendlength="5"></trackmarker>
+        <trackmarker start="3100" end="4200" wadjust="15" vadjust="15" class="marker markermedium">
+            <markerlabel type="path" text="ORF 4" labelclass="mdlabel"></markerlabel>
+        </trackmarker>
+
+        <!-- ORF 5 -->
+        <trackmarker start="4040" end="4150" wadjust="10" vadjust="18" class="marker markermedium" arrowendlength="5"></trackmarker>
+        <trackmarker start="4500" end="5200" wadjust="15" vadjust="15" class="marker markermedium">
+            <markerlabel type="path" text="ORF 5" labelclass="mdlabel"></markerlabel>
+        </trackmarker>
+
+        <!-- ORF 6 -->
+        <trackmarker start="5040" end="5150" wadjust="10" vadjust="18" class="marker markermedium" arrowendlength="5"></trackmarker>
+        <trackmarker start="5300" end="6200" wadjust="15" vadjust="15" class="marker markermedium">
+            <markerlabel type="path" text="ORF 6" labelclass="mdlabel"></markerlabel>
+        </trackmarker>
+
+        <!-- ORF 7 -->
+        <trackmarker start="6040" end="6150" wadjust="10" vadjust="18" class="marker markermedium" arrowendlength="5"></trackmarker>
+        <trackmarker start="6200" end="7400" wadjust="15" vadjust="15" class="marker markermedium">
+            <markerlabel type="path" text="ORF 7" labelclass="mdlabel"></markerlabel>
+        </trackmarker>
+
+        <!-- ORF 2 -->                
+        <trackmarker start="7240" end="7350" wadjust="10" vadjust="18" class="marker markermedium" arrowendlength="5"></trackmarker>
+        <trackmarker start="520" end="1600" wadjust="15" vadjust="-30" class="marker markermedium">
+            <markerlabel type="path" text="ORF 2" labelclass="mdlabel"></markerlabel>
+        </trackmarker>
+        <trackmarker start="570" end="700" wadjust="10" vadjust="-28" class="marker markermedium" arrowstartlength="6"></trackmarker>
+
+
+        <!-- Restriction sites -->
+        <trackmarker start="570" wadjust="12" vadjust="-6" class="marker markerbold">
+            <markerlabel text="Bgl II" labelclass="smlabel" vadjust="20"></markerlabel>
+        </trackmarker>
+        <trackmarker start="995" wadjust="12" vadjust="-6" class="marker markerbold">
+            <markerlabel text="Sma I" labelclass="smlabel" vadjust="20"></markerlabel>
+        </trackmarker>
+        <trackmarker start="2493" wadjust="12" vadjust="-6" class="marker markerbold">
+            <markerlabel text="Pst I" labelclass="smlabel" vadjust="-20"></markerlabel>
+        </trackmarker>
+        <trackmarker start="3222" wadjust="12" vadjust="-6" class="marker markerbold">
+            <markerlabel text="EcoRI" labelclass="smlabel" vadjust="-20"></markerlabel>
+        </trackmarker>
+        <trackmarker start="4556" wadjust="12" vadjust="-6" class="marker markerbold">
+            <markerlabel text="Dra II" labelclass="smlabel" vadjust="-25"></markerlabel>
+        </trackmarker>
+        <trackmarker start="6155" wadjust="12" vadjust="-6" class="marker markerbold">
+            <markerlabel text="EcoRI" labelclass="smlabel" vadjust="-25"></markerlabel>
+        </trackmarker>
+    </plasmidtrack>
+</plasmid>

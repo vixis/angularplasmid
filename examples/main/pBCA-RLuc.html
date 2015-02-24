@@ -1,0 +1,75 @@
+<html>
+    <head>
+        <script src="../../dist/angularplasmid.complete.min.js"></script>
+    </head>
+    <body>
+        <style>
+            @import url("http://fonts.googleapis.com/css?family=Lato:300,400,700|Donegal+One|Source+Code+Pro:400");
+            body {font-family: 'Lato';font-weight:400}
+            .mdlabel {font-size:10px}
+            .smlabel {font-size:8px;font-weight:300}
+            .red {fill:#f00}
+            .gray {fill:#999}
+            .blue {fill:#039}
+            .purple {fill:#939}
+            .redregion {stroke:rgba(192,64,64,0.4);fill:rgba(255,192,192,0.4)}
+            .greenregion {stroke:rgba(64,192,64,0.4);fill:rgba(192,255,192,0.4)}
+            .purpleregion {stroke:rgba(64,64,192,0.4);fill:rgba(192,192,255,0.4)}
+        </style>
+        <plasmid sequencelength="130" plasmidheight="375" plasmidwidth="375">
+            <plasmidtrack trackstyle="fill:none;stroke:none" radius="110">
+                
+                <!-- track labels -->
+                <tracklabel labelstyle="font-weight:700;fill:#369" text="pBCA-RLuc"></tracklabel>
+                <tracklabel labelstyle="font-size:14px;font-weight:300;fill:#036" text="130 bp" vadjust="20"></tracklabel>
+                
+                <!-- scales -->
+                <trackscale interval="5" style='stroke:#999' labelclass="smlabel gray" labelvadjust="12" showlabels="1"></trackscale>
+                
+                <!-- shaded regions -->
+                <trackmarker start="50" end="75" class="redregion" vadjust="-6" wadjust="5"></trackmarker>
+                <trackmarker start="85" end="100" class="greenregion" vadjust="-6" wadjust="5"></trackmarker>
+                <trackmarker start="120" end="30" class="purpleregion" vadjust="-6" wadjust="5"></trackmarker>
+                
+                
+                <!-- Initator arrow -->
+                <trackmarker start="120" end="30" markerstyle="fill:#339" vadjust="-15" wadjust="-23" arrowendlength="5" arrowendwidth="3">
+                    <markerlabel type="path" text="Initiating ATG" valign="inner" labelclass="mdlabel blue" vadjust="-2"></markerlabel>                
+                </trackmarker>
+                
+                <!-- nucleotide list and ticks marks between nucleotides-->
+                <trackmarker start="0" end="130">
+                    <markerlabel type="path" labelstyle="font-size:8px;font-weight:400;kerning:1.1" text="GGAAAAGGAGGCCAGTGCATCAGAGAGACGCTGAAACTGTATGCGGAAAAGGAGGCCAGTGCATCAGAGAGTCGCAAACAGCTGTGAAGTCGCGTTCTCAAGAATTTGCAGCAGGCTGTGGCCACTTCGCCGGAAAAGGAGGCCAGTGCATCAGAGAGCAAGATCACAGCTGTGAAGTCGCTTC" halign="start" vadjust="5"></markerlabel>
+                    <markerlabel type="path" labelstyle="font-size:8px;font-weight:400" text="CCTTTTCCTCCGGTCACGTAGTCTCTCTGCGACTTTGACATACGCCTTTTCCTCCGGTCACGTAGTCTCTCAGCGTTTGTCGACACTTCAGCGCAAGAGTTCTTAAACGTCGTCCGACACCGGTGAAGCGGCCTTTTCCTCCGGTCACGTAGTCTCTCGTTCTAGTGTCGACACTTCAGCGAAG" halign="start" vadjust="-10"></markerlabel>
+                </trackmarker>
+                <trackscale interval="1" style='stroke:#c99' ticksize="5" vadjust="-18"></trackscale>
+
+                <!-- Promoter markers -->
+                <trackmarker start="62" end="82" class="purple" vadjust="-15" wadjust="-23" arrowendlength="5" arrowendwidth="3">
+                    <markerlabel text="82" halign="end" vadjust="-10" labelclass="mdlabel purple"></markerlabel>
+                </trackmarker>
+                <trackmarker start="55" end="72" class="purple" vadjust="-20" wadjust="-23" arrowstartlength="5" arrowstartwidth="3">
+                    <markerlabel text="55" halign="start" vadjust="-10" labelclass="mdlabel purple"></markerlabel>
+                </trackmarker>
+                <trackmarker start="55" end="82" markerstyle="stroke:none;fill:none" vadjust="-20" wadjust="-23">
+                    <markerlabel text="Promoter" vadjust="-15" labelclass="mdlabel purple"></markerlabel>
+                </trackmarker>
+                
+                <!-- Restriction enzymes -->
+                <trackmarker start="112" markerstyle="stroke:rgba(255,0,0,1);stroke-width:2px" vadjust="-6" wadjust="5">
+                    <markerlabel text="HindIII" class="mdlabel red" valign="inner" vadjust="-20"></markerlabel>
+                    <markerlabel text="112" class="mdlabel red" valign="outer" vadjust="15"></markerlabel>
+                </trackmarker>
+                <trackmarker start="38" markerstyle="stroke:rgba(255,0,0,1);stroke-width:2px" vadjust="-6" wadjust="5">
+                    <markerlabel text="HindIII" class="mdlabel red" valign="inner" vadjust="-20"></markerlabel>
+                    <markerlabel text="38" class="mdlabel red" valign="outer" vadjust="15"></markerlabel>
+                </trackmarker>
+                <trackmarker start="87" markerstyle="stroke:rgba(255,0,0,1);stroke-width:2px" vadjust="-6" wadjust="5">
+                    <markerlabel text="HindIII" class="mdlabel red" valign="inner" vadjust="-20"></markerlabel>
+                    <markerlabel text="87" class="mdlabel red" valign="outer" vadjust="15"></markerlabel>
+                </trackmarker>
+                
+            </plasmidtrack>
+        </plasmid>
+    </body>
+</html>

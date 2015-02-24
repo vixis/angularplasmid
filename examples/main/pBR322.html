@@ -1,0 +1,72 @@
+<html>
+    <head>
+        <script src="../../dist/angularplasmid.complete.min.js"></script>
+    </head>
+    <body>
+        <style>
+            @import url("http://fonts.googleapis.com/css?family=Lato:300,400,700|Donegal+One|Source+Code+Pro:400");
+            body {font-family: 'Lato';font-weight:400;}
+            .boundary {stroke-dasharray:2,2;stroke-width:2px}
+            .mdlabel {font-size:12px}
+            .smlabel {font-size:10px;font-weight:700}
+            .white {fill:#fff}
+            .black {fill:#000}
+            .majorscale {stroke:#c00;stroke-width:2px}
+            .minorscale {stroke:#999;stroke-width:1px}
+        </style>
+        <plasmid sequencelength="1000" plasmidheight="375" plasmidwidth="375">
+            
+            <!-- inner track -->
+            <plasmidtrack trackstyle="fill:#f0f0f0;stroke:#009;" width="35" radius="63">
+                <tracklabel text="pBR322" labelstyle="fill:#900;font-weight:700"></tracklabel>
+                <trackmarker start="100" end="250" markerstyle="fill:rgb(32,32,64)">
+                    <markerlabel type="path" class="mdlabel white" text="pUC ORI"></markerlabel>
+                </trackmarker>
+                <trackmarker start="250" end="440" markerstyle="fill:rgb(64,64,128)">
+                    <markerlabel type="path" class="mdlabel white" text="hPGK"></markerlabel>
+                </trackmarker>
+                <trackmarker start="440" end="620" markerstyle="fill:rgb(92,92,164)">
+                    <markerlabel type="path" class="mdlabel white" text="ORI"></markerlabel>
+                </trackmarker>
+                <trackmarker start="620" end="800" markerstyle="fill:rgb(128,128,192)">
+                    <markerlabel type="path" class="mdlabel white" text="AraC"></markerlabel>
+                </trackmarker>
+                <trackmarker start="800" end="975" markerstyle="fill:rgb(192,192,225)">
+                    <markerlabel type="path" class="mdlabel black" text="Ampf"></markerlabel>
+                </trackmarker>
+                <trackmarker start="975" end="100" markerstyle="fill:rgb(225,225,255)">
+                    <markerlabel type="path" class="mdlabel black" text="GFP"></markerlabel>
+                </trackmarker>
+                <trackscale interval="50" class="majorscale" vadjust="5" ticksize="4"></trackscale>
+                <trackscale interval="10" class="minorscale"  vadjust="5"></trackscale>
+                <trackscale interval="50" class="majorscale"  ticksize="4" direction="in"></trackscale>
+                <trackscale interval="10" class="minorscale" direction="in"></trackscale>
+            </plasmidtrack>
+            
+            <!-- outer track -->
+            <plasmidtrack trackstyle="fill:#f0f0f0;stroke:#999;stroke:#333" width="20" radius="109">
+                <trackmarker start="100" end="250" markerstyle="fill:rgb(64,64,64)">
+                    <markerlabel type="path" class="smlabel white" text="LacZ" vadjust="5"></markerlabel>
+                </trackmarker>
+                <trackmarker start="250" end="440" markerstyle="fill:rgb(92,92,92)">
+                    <markerlabel type="path" class="smlabel white" text="nat-1" vadjust="5"></markerlabel>
+                </trackmarker>
+                <trackmarker start="440" end="620" markerstyle="fill:rgb(128,128,128)">
+                    <markerlabel type="path" class="smlabel white" text="SacB#3" vadjust="5"></markerlabel>
+                </trackmarker>
+                <trackmarker start="620" end="800" markerstyle="fill:rgb(192,192,192)">
+                    <markerlabel type="path" class="smlabel white" text="Tn7R" vadjust="5"></markerlabel>
+                </trackmarker>
+                <trackmarker start="800" end="975" markerstyle="fill:rgb(225,225,225)">
+                    <markerlabel type="path" class="smlabel black" text="SV40 pA" vadjust="5"></markerlabel>
+                </trackmarker>
+                <trackmarker start="975" end="100" markerstyle="fill:rgb(252,252,252)">
+                    <markerlabel type="path" class="smlabel black" text="Tn7L" vadjust="5"></markerlabel>
+                </trackmarker>
+                <trackscale interval="50" class="majorscale" vadjust="5" ticksize="4" showlabels="1" labelstyle="font-size:10px;font-weight:400;fill:#999"></trackscale>
+                <trackscale interval="10" class="minorscale" vadjust="5"></trackscale>
+            </plasmidtrack>
+            
+        </plasmid>
+    </body>
+</html>
